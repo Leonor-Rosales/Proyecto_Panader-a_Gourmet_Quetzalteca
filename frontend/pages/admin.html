@@ -79,6 +79,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   width:var(--sidebar-w);flex-shrink:0;background:linear-gradient(180deg,#4a1a2c 0%,#7d3248 60%,#9a4060);
   display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;
   box-shadow:4px 0 20px rgba(60,10,30,.25);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);  /* AÑADIDO: animación base */
 }
 .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
 .sidebar-brand h2{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;color:#fff;line-height:1.3}
@@ -233,19 +234,113 @@ input:checked+.slider:before{transform:translateX(16px)}
 .btn-remove-admin:hover{color:var(--red)}
 
 /* ── RESPONSIVE ── */
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE COMPLETO — AÑADIDO
+   CAMBIO: sidebar ahora tiene overlay y toggle en móvil
+   CAMBIO: tablas con scroll horizontal en móvil
+   CAMBIO: stats y settings en columna en pantallas chicas
+   CAMBIO: topbar con hamburger en móvil
+   CAMBIO: modales full-width en móvil
+═══════════════════════════════════════════════════ */
+
+/* ── Hamburger button (visible solo en móvil) ── */
+.sidebar-toggle{
+  display:none;background:none;border:none;cursor:pointer;
+  padding:6px;color:var(--dark-pink);font-size:1.4rem;line-height:1;
+}
+
+/* ── Overlay oscuro detrás del sidebar en móvil ── */
+.sidebar-overlay{
+  position:fixed;inset:0;background:rgba(40,10,20,.5);
+  z-index:90;
+  opacity:0;
+  pointer-events:none;          /* invisible → no intercepta clicks */
+  transition:opacity .3s;
+  /* SIN display:none — usamos pointer-events + opacity para animar */
+}
+.sidebar-overlay.open{
+  opacity:1;
+  pointer-events:auto;          /* activo → recibe el click para cerrar */
+}
+
+/* ── Tablas: scroll horizontal en móvil ── */
+.table-wrap{overflow-x:auto;}
+table{min-width:600px;}
+
+/* ── DESKTOP: sidebar siempre visible, sin transform ── */
+@media(min-width:769px){
+  .sidebar{
+    transform:none !important;
+    transition:none;
+    position:fixed;
+  }
+  .sidebar-overlay{display:none !important;}
+  .main-content{margin-left:var(--sidebar-w);}
+}
+
+/* ── Tablet (≤ 900px) ── */
 @media(max-width:900px){
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .settings-grid{grid-template-columns:1fr}
+  .form-row-3{grid-template-columns:1fr 1fr}
 }
-@media(max-width:640px){
-  .sidebar{transform:translateX(-100%)}
-  .main-content{margin-left:0}
-  .stats-grid{grid-template-columns:1fr 1fr}
+
+/* ── Móvil (≤ 768px) ── */
+@media(max-width:768px){
+  /* Sidebar deslizante — CAMBIO: antes se cortaba, ahora desliza */
+  .sidebar{
+    transform:translateX(-100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    z-index:100;
+  }
+  .sidebar.open{transform:translateX(0);}
+
+  /* Overlay visible solo cuando sidebar está abierto */
+  .sidebar-overlay{display:block;}
+
+  /* Main ocupa todo el ancho */
+  .main-content{margin-left:0;}
+
+  /* Topbar: mostrar botón hamburger */
+  .sidebar-toggle{display:flex;align-items:center;justify-content:center;}
+
+  /* Stats en 2 columnas */
+  .stats-grid{grid-template-columns:1fr 1fr;gap:12px}
+
+  /* Formularios: 1 columna */
   .form-row-2,.form-row-3{grid-template-columns:1fr}
+
+  /* Content area: menos padding */
+  .content-area{padding:16px}
+
+  /* Topbar compacto */
+  .topbar{padding:0 16px;height:56px}
+  .topbar-title{font-size:1.1rem}
+  #topbar-date{display:none}   /* ocultar fecha en móvil */
+
+  /* Modal full-width en móvil */
+  .modal-editor{max-width:100%;margin:8px;border-radius:12px}
+  .modal-body{padding:16px 18px 18px}
+  .modal-editor-header{padding:16px 18px 14px}
+
+  /* Botones de acciones en tabla apilados */
+  .actions-cell{flex-wrap:wrap;gap:4px}
+}
+
+/* ── Teléfono pequeño (≤ 400px) ── */
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:1fr}
+  .stat-card{padding:14px 16px}
+  .stat-value{font-size:1.6rem}
+  .btn-add{padding:7px 12px;font-size:.78rem}
 }
 </style>
 </head>
 <body>
+
+<!-- AÑADIDO: overlay para sidebar móvil — se activa al abrir el menú -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- ══════════════════════════
      LOGIN SCREEN
@@ -292,28 +387,28 @@ input:checked+.slider:before{transform:translateX(16px)}
     </div>
     <nav class="sidebar-nav">
   <div class="nav-section-label">Principal</div>
-  <div class="nav-item active" onclick="showPanel('dashboard')" id="nav-dashboard">
+  <div class="nav-item active" onclick="showPanel('dashboard');closeSidebar()" id="nav-dashboard">
     <span class="material-symbols-outlined">dashboard</span> Dashboard
   </div>
-  <div class="nav-item" onclick="showPanel('cursos')" id="nav-cursos">
+  <div class="nav-item" onclick="showPanel('cursos');closeSidebar()" id="nav-cursos">
     <span class="material-symbols-outlined">menu_book</span> Cursos
   </div>
-  <div class="nav-item" onclick="showPanel('inscripciones')" id="nav-inscripciones">
+  <div class="nav-item" onclick="showPanel('inscripciones');closeSidebar()" id="nav-inscripciones">
     <span class="material-symbols-outlined">person_add</span> Inscripciones
   </div>
   
   <div class="nav-divider"></div>
   <div class="nav-section-label">Catálogo</div>
-  <div class="nav-item" onclick="showPanel('pasteleria')" id="nav-pasteleria">
+  <div class="nav-item" onclick="showPanel('pasteleria');closeSidebar()" id="nav-pasteleria">
     <span class="material-symbols-outlined">cake</span> Pastelería
   </div>
-  <div class="nav-item" onclick="showPanel('banquetes')" id="nav-banquetes">
+  <div class="nav-item" onclick="showPanel('banquetes');closeSidebar()" id="nav-banquetes">
     <span class="material-symbols-outlined">restaurant</span> Solicitudes Banquetes
   </div>
   
   <div class="nav-divider"></div>
   <div class="nav-section-label">Sistema</div>
-  <div class="nav-item" onclick="showPanel('ajustes')" id="nav-ajustes">
+  <div class="nav-item" onclick="showPanel('ajustes');closeSidebar()" id="nav-ajustes">
     <span class="material-symbols-outlined">settings</span> Ajustes
   </div>
 </nav>
@@ -334,6 +429,8 @@ input:checked+.slider:before{transform:translateX(16px)}
   <!-- MAIN -->
   <main class="main-content">
     <div class="topbar">
+      <!-- AÑADIDO: botón hamburger visible solo en móvil (≤768px) -->
+      <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Abrir menú">☰</button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div class="topbar-actions">
         <button class="btn-add" id="btn-add-main" onclick="openAddModal()" style="display:none">+ Nuevo Curso</button>
@@ -375,7 +472,7 @@ input:checked+.slider:before{transform:translateX(16px)}
         <div class="table-wrap">
           <div class="table-header">
             <h3>Próximos Cursos</h3>
-            <button class="btn-add" onclick="showPanel('cursos')">Ver todos ›</button>
+            <button class="btn-add" onclick="showPanel('cursos');closeSidebar()">Ver todos ›</button>
           </div>
           <table id="dashboard-cursos-table">
             <thead><tr>
@@ -592,17 +689,33 @@ input:checked+.slider:before{transform:translateX(16px)}
         <label>Descripción completa</label>
         <textarea id="curso-desc" placeholder="Describe el contenido del curso, qué aprenderán los participantes, qué llevarán a casa, etc."></textarea>
       </div>
+      <!-- CAMBIO: imagen ahora acepta archivo subido O URL pegada -->
       <div class="form-group">
         <label>Imagen del curso</label>
+        <!-- Preview de la imagen -->
         <div class="img-preview-wrap" id="img-preview-area">
           <div class="img-placeholder" id="img-placeholder">
             <span class="icon">🖼</span>
-            <p>Pega la URL de la imagen abajo</p>
+            <p>Sube un archivo o pega una URL abajo</p>
           </div>
           <img id="img-preview" style="display:none" src="" alt="Preview">
         </div>
-        <input class="img-url-input" type="url" id="curso-imagen" placeholder="https://images.unsplash.com/..." oninput="previewImage(this.value)">
-        <p style="font-size:.7rem;color:var(--text-light);margin-top:5px">Puedes usar imágenes de Unsplash, Cloudinary u otro CDN.</p>
+
+        <!-- AÑADIDO: opción 1 — subir archivo desde el equipo -->
+        <div style="margin-top:10px">
+          <p style="font-size:.7rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Opción 1 — Subir archivo</p>
+          <input type="file" id="curso-imagen-file" accept="image/jpeg,image/png,image/webp"
+            style="width:100%;font-size:.82rem;padding:8px;border:1.5px dashed #e8d0d8;border-radius:7px;background:#fdf6f8;cursor:pointer"
+            onchange="handleFileSelect(this,'curso-imagen','img-preview','img-placeholder')">
+          <p style="font-size:.68rem;color:var(--text-light);margin-top:4px">JPG, PNG, WEBP · máx 5 MB</p>
+        </div>
+
+        <!-- Opción 2 — pegar URL -->
+        <div style="margin-top:10px">
+          <p style="font-size:.7rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Opción 2 — Pegar URL</p>
+          <input class="img-url-input" type="url" id="curso-imagen" placeholder="https://images.unsplash.com/..."
+            oninput="previewImage(this.value,'img-preview','img-placeholder')">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -624,9 +737,30 @@ input:checked+.slider:before{transform:translateX(16px)}
       <div class="form-group"><label>Nombre del Producto *</label><input type="text" id="pastel-nombre" placeholder="ej. Pastel de Bodas"></div>
       <div class="form-group"><label>Descripción</label><textarea id="pastel-desc" placeholder="Breve descripción del producto"></textarea></div>
       <div class="form-group"><label>Precio</label><input type="text" id="pastel-precio" placeholder="ej. Desde Q.800"></div>
+      <!-- CAMBIO: imagen producto ahora acepta archivo subido O URL pegada -->
       <div class="form-group">
-        <label>Imagen</label>
-        <input class="img-url-input" type="url" id="pastel-imagen" placeholder="https://..." style="border:1.5px solid #e8d0d8;border-radius:7px;padding:10px 13px;width:100%">
+        <label>Imagen del producto</label>
+
+        <!-- Preview pequeño para producto -->
+        <div id="pastel-img-preview-area" style="margin-bottom:10px;display:none">
+          <img id="pastel-img-preview" src="" alt="Preview"
+            style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:2px solid var(--blush)">
+        </div>
+
+        <!-- AÑADIDO: opción 1 — subir archivo -->
+        <div style="margin-bottom:10px">
+          <p style="font-size:.7rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Opción 1 — Subir archivo</p>
+          <input type="file" id="pastel-imagen-file" accept="image/jpeg,image/png,image/webp"
+            style="width:100%;font-size:.82rem;padding:8px;border:1.5px dashed #e8d0d8;border-radius:7px;background:#fdf6f8;cursor:pointer"
+            onchange="handleFileSelect(this,'pastel-imagen','pastel-img-preview','pastel-img-preview-area',true)">
+          <p style="font-size:.68rem;color:var(--text-light);margin-top:4px">JPG, PNG, WEBP · máx 5 MB</p>
+        </div>
+
+        <!-- Opción 2 — pegar URL -->
+        <p style="font-size:.7rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Opción 2 — Pegar URL</p>
+        <input class="img-url-input" type="url" id="pastel-imagen" placeholder="https://..."
+          style="border:1.5px solid #e8d0d8;border-radius:7px;padding:10px 13px;width:100%"
+          oninput="previewPastelUrl(this.value)">
       </div>
     </div>
     <div class="modal-footer">
@@ -779,6 +913,7 @@ function _mostrarPanelAdmin(){
 
 // Allow Enter key on login
 document.addEventListener('DOMContentLoaded', () => {
+  checkAdminAccess(); // SEGURIDAD: verifica sesión al cargar
   ['admin-email','admin-pass'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if(e.key === 'Enter') handleAdminLogin();
@@ -1242,8 +1377,172 @@ function showToast(msg, type='success'){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closeCursoModal(); closePastelModal(); closeInscripcionModal(); closeConfirm();
+    closeSidebar();   // AÑADIDO: cerrar sidebar con Escape en móvil
   }
 });
+
+// ══════════════════════════════════════════════════════════
+// CAMBIO: SEGURIDAD — validación de sesión al cargar admin.html
+// AÑADIDO: bloqueo frontend si no hay sesión válida con rol = 2
+// Si alguien escribe /admin en la URL sin sesión, lo redirige a /
+// ══════════════════════════════════════════════════════════
+// ── SEGURIDAD: verificar sesión admin ──
+// Se ejecuta en DOMContentLoaded para no interferir con _mostrarPanelAdmin
+// Lee 'usuario_sesion' (login desde index.html) O 'admin_session' (login interno)
+function checkAdminAccess() {
+  // 1. Verificar sesión interna del panel admin
+  const rawAdmin = sessionStorage.getItem('admin_session');
+  if (rawAdmin) {
+    try {
+      const s = JSON.parse(rawAdmin);
+      if (s && s.id_rol === 2) return; // OK — sesión de admin válida
+    } catch {}
+  }
+
+  // 2. Verificar sesión de index.html (usuario logueado como admin)
+  const rawUsuario = sessionStorage.getItem('usuario_sesion');
+  if (rawUsuario) {
+    try {
+      const s = JSON.parse(rawUsuario);
+      if (s && s.id_rol === 2) {
+        // Crear sesión de admin a partir de la sesión del usuario
+        // para que el panel funcione correctamente
+        currentAdmin = { name: s.nombre_completo, email: s.email, id_rol: s.id_rol };
+        sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
+        return; // OK
+      }
+      // Logueado pero no es admin → redirigir
+      window.location.replace('/');
+      return;
+    } catch {}
+  }
+
+// 3. Sin sesión válida con rol admin → redirigir a home
+  // Cualquiera que llegue a /admin sin sesión admin es rechazado
+  window.location.replace('/');
+}
+
+
+// ══════════════════════════════════════════════════════════
+// CAMBIO: RESPONSIVE — sidebar toggle para móvil
+// AÑADIDO: funciones toggleSidebar, closeSidebar
+// ══════════════════════════════════════════════════════════
+function toggleSidebar() {
+  const sidebar  = document.querySelector('.sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = sidebar.classList.contains('open');
+  if (isOpen) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden'; // AÑADIDO: evitar scroll fondo
+  }
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  const ov = document.getElementById('sidebar-overlay');
+  if (ov) ov.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// FIX: NO sobreescribir showPanel con recursión.
+// En cambio, el cierre del sidebar se maneja dentro de toggleSidebar
+// y los nav-items llaman closeSidebar() directamente.
+
+
+// ══════════════════════════════════════════════════════════
+// CAMBIO: IMÁGENES — sistema dual URL + archivo
+// AÑADIDO: handleFileSelect, previewImage, previewPastelUrl
+// ══════════════════════════════════════════════════════════
+
+/**
+ * AÑADIDO: handleFileSelect
+ * Se llama cuando el usuario selecciona un archivo desde el input[type=file].
+ * Sube el archivo a /api/upload, recibe la URL y la mete en el input hidden.
+ *
+ * @param {HTMLInputElement} fileInput  — el input[type=file]
+ * @param {string} urlInputId           — id del input[type=url] donde guardar la URL
+ * @param {string} previewImgId         — id del <img> de preview
+ * @param {string} placeholderId        — id del div/img de placeholder
+ * @param {boolean} isArea              — true si placeholder es el contenedor (pasteles)
+ */
+async function handleFileSelect(fileInput, urlInputId, previewImgId, placeholderId, isArea = false) {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  // Validar tamaño en frontend (5 MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('La imagen no puede superar 5 MB', 'error');
+    fileInput.value = '';
+    return;
+  }
+
+  // Validar tipo en frontend
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    showToast('Solo se permiten JPG, PNG o WEBP', 'error');
+    fileInput.value = '';
+    return;
+  }
+
+  // Mostrar preview local inmediato (sin esperar al servidor)
+  const localUrl = URL.createObjectURL(file);
+  const previewImg = document.getElementById(previewImgId);
+  const placeholder = document.getElementById(placeholderId);
+  if (previewImg) { previewImg.src = localUrl; previewImg.style.display = 'block'; }
+  if (placeholder) {
+    if (isArea) placeholder.style.display = 'block';   // para pasteles el area es el contenedor
+    else        placeholder.style.display = 'none';
+  }
+
+  // Subir al servidor via /api/upload
+  showToast('Subiendo imagen…', 'neutral');
+  const formData = new FormData();
+  formData.append('imagen', file);
+
+  try {
+    const res  = await fetch('/api/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.message || 'Error al subir imagen', 'error'); return; }
+
+    // AÑADIDO: guardar la URL del servidor en el input de URL
+    const urlInput = document.getElementById(urlInputId);
+    if (urlInput) urlInput.value = data.url;
+    showToast('Imagen subida ✓');
+  } catch {
+    showToast('Error de conexión al subir imagen', 'error');
+  }
+}
+
+// CAMBIO: previewImage ahora acepta IDs dinámicos (para curso y pastel)
+function previewImage(url, imgId = 'img-preview', phId = 'img-placeholder') {
+  const img = document.getElementById(imgId);
+  const ph  = document.getElementById(phId);
+  if (!img) return;
+  if (url && url.startsWith('http')) {
+    img.src = url; img.style.display = 'block';
+    if (ph) ph.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    if (ph) ph.style.display = 'block';
+  }
+}
+
+// AÑADIDO: preview para URL de pasteles
+function previewPastelUrl(url) {
+  const img  = document.getElementById('pastel-img-preview');
+  const area = document.getElementById('pastel-img-preview-area');
+  if (!img) return;
+  if (url && url.startsWith('http')) {
+    img.src = url;
+    area.style.display = 'block';
+  } else {
+    area.style.display = 'none';
+  }
+}
+
 </script>
 <script src="../js/admin.js"></script>
 </body>

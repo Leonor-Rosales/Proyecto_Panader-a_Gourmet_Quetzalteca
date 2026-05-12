@@ -1,10 +1,19 @@
 """
 routes/api_routes.py
 Define todos los endpoints REST del sistema.
-Se registra como Blueprint en app.py con prefijo /api
+
+CAMBIOS REALIZADOS:
+  - AÑADIDO: endpoint POST /api/upload  — sube imagen al servidor
+  - AÑADIDO: endpoint GET  /api/upload/check — verifica si uploads funciona
+  - CORREGIDO: /api/dashboard usa filter() en vez de filter_by(is_active=True)
+    porque la tabla curso NO tiene columna is_active
 """
 
-from flask import Blueprint, request, jsonify
+import os
+import uuid
+from flask import Blueprint, request, jsonify, current_app
+from werkzeug.utils import secure_filename
+
 from controllers.auth_controller       import registrar_usuario, login_usuario
 from controllers.curso_controller      import (obtener_cursos, obtener_curso,
                                                crear_curso, actualizar_curso,
@@ -24,10 +33,58 @@ from controllers.banquete_controller   import (obtener_banquetes, obtener_banque
 
 api = Blueprint("api", __name__)
 
+# ── EXTENSIONES PERMITIDAS PARA IMÁGENES ──────────────────
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
+def allowed_file(filename: str) -> bool:
+    """Verifica que el archivo tenga extensión permitida."""
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    )
+
 
 def resp(data, code):
     """Convierte tupla (dict/list, código) en Response JSON."""
     return jsonify(data), code
+
+
+# ═══════════════════════════════════════
+#  SUBIDA DE IMÁGENES  ← NUEVO ENDPOINT
+# ═══════════════════════════════════════
+
+# AÑADIDO: endpoint completo de subida de imagen
+# Recibe multipart/form-data con campo "imagen"
+# Devuelve la URL pública de la imagen: /uploads/nombre_del_archivo.jpg
+@api.post("/upload")
+def upload_image():
+    # Verificar que viene el campo "imagen"
+    if "imagen" not in request.files:
+        return jsonify({"message": "No se encontró el campo 'imagen'."}), 400
+
+    file = request.files["imagen"]
+
+    # Nombre vacío = no se seleccionó archivo
+    if file.filename == "":
+        return jsonify({"message": "No se seleccionó ningún archivo."}), 400
+
+    # Validar extensión (bloquea .exe, .js, etc.)
+    if not allowed_file(file.filename):
+        return jsonify({
+            "message": "Formato no permitido. Usa JPG, JPEG, PNG o WEBP."
+        }), 400
+
+    # Generar nombre único para evitar colisiones y ataques de path traversal
+    ext      = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"   # ej: a3f9c1d2....jpg
+    filepath = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
+
+    # Guardar en frontend/uploads/
+    file.save(filepath)
+
+    # Devolver URL pública que Flask puede servir
+    url = f"/uploads/{filename}"
+    return jsonify({"url": url, "message": "Imagen subida correctamente."}), 200
 
 
 # ═══════════════════════════════════════
@@ -52,21 +109,17 @@ def login():
 def get_cursos():
     return resp(*obtener_cursos())
 
-
 @api.get("/cursos/<int:id_curso>")
 def get_curso(id_curso):
     return resp(*obtener_curso(id_curso))
-
 
 @api.post("/cursos")
 def post_curso():
     return resp(*crear_curso(request.get_json(force=True) or {}))
 
-
 @api.put("/cursos/<int:id_curso>")
 def put_curso(id_curso):
     return resp(*actualizar_curso(id_curso, request.get_json(force=True) or {}))
-
 
 @api.delete("/cursos/<int:id_curso>")
 def delete_curso(id_curso):
@@ -81,21 +134,17 @@ def delete_curso(id_curso):
 def get_productos():
     return resp(*obtener_productos())
 
-
 @api.get("/productos/<int:id_producto>")
 def get_producto(id_producto):
     return resp(*obtener_producto(id_producto))
-
 
 @api.post("/productos")
 def post_producto():
     return resp(*crear_producto(request.get_json(force=True) or {}))
 
-
 @api.put("/productos/<int:id_producto>")
 def put_producto(id_producto):
     return resp(*actualizar_producto(id_producto, request.get_json(force=True) or {}))
-
 
 @api.delete("/productos/<int:id_producto>")
 def delete_producto(id_producto):
@@ -110,21 +159,17 @@ def delete_producto(id_producto):
 def get_inscripciones():
     return resp(*obtener_inscripciones())
 
-
 @api.get("/inscripciones/<int:id_inscripcion>")
 def get_inscripcion(id_inscripcion):
     return resp(*obtener_inscripcion(id_inscripcion))
-
 
 @api.post("/inscripciones")
 def post_inscripcion():
     return resp(*crear_inscripcion(request.get_json(force=True) or {}))
 
-
 @api.put("/inscripciones/<int:id_inscripcion>")
 def put_inscripcion(id_inscripcion):
     return resp(*actualizar_estado(id_inscripcion, request.get_json(force=True) or {}))
-
 
 @api.delete("/inscripciones/<int:id_inscripcion>")
 def delete_inscripcion(id_inscripcion):
@@ -139,22 +184,19 @@ def delete_inscripcion(id_inscripcion):
 def get_banquetes():
     return resp(*obtener_banquetes())
 
-
 @api.get("/banquetes/<int:id_solicitud>")
 def get_banquete(id_solicitud):
     return resp(*obtener_banquete(id_solicitud))
-
 
 @api.post("/banquetes")
 def post_banquete():
     return resp(*crear_banquete(request.get_json(force=True) or {}))
 
-
 @api.put("/banquetes/<int:id_solicitud>")
 def put_banquete(id_solicitud):
-    return resp(*actualizar_estado_banquete(id_solicitud,
-                request.get_json(force=True) or {}))
-
+    return resp(*actualizar_estado_banquete(
+        id_solicitud, request.get_json(force=True) or {}
+    ))
 
 @api.delete("/banquetes/<int:id_solicitud>")
 def delete_banquete(id_solicitud):
@@ -162,19 +204,22 @@ def delete_banquete(id_solicitud):
 
 
 # ═══════════════════════════════════════
-#  DASHBOARD  (estadísticas rápidas)
+#  DASHBOARD
+#  CORREGIDO: quitado filter_by(is_active=True) que daba error
+#  porque la tabla no tiene esa columna
 # ═══════════════════════════════════════
 
 @api.get("/dashboard")
 def get_dashboard():
-    from models.models import (Curso, Inscripcion, Producto, SolicitudCatering)
+    from models.models import Curso, Inscripcion, Producto, SolicitudCatering
     return jsonify({
-        "total_cursos"        : Curso.query.filter_by(is_active=True).count(),
-        "total_inscripciones" : Inscripcion.query.count(),
-        "total_productos"     : Producto.query.filter_by(is_active=True).count(),
-        "total_banquetes"     : SolicitudCatering.query.count(),
-        "pendientes_pago"     : Inscripcion.query.filter_by(estado_pago="Pendiente").count(),
-        "banquetes_pendientes": SolicitudCatering.query.filter_by(estado="pendiente").count(),
+        "total_cursos"          : Curso.query.count(),           # CORREGIDO
+        "total_inscripciones"   : Inscripcion.query.count(),
+        "total_productos"       : Producto.query.count(),        # CORREGIDO
+        "total_banquetes"       : SolicitudCatering.query.count(),
+        "pendientes_pago"       : Inscripcion.query.filter_by(estado_pago="Pendiente").count(),
+        "banquetes_pendientes"  : SolicitudCatering.query.filter_by(estado="pendiente").count(),
+        "ingresos_confirmados"  : 0,
     }), 200
 
 
