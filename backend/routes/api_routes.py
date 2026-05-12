@@ -176,3 +176,35 @@ def get_dashboard():
         "pendientes_pago"     : Inscripcion.query.filter_by(estado_pago="Pendiente").count(),
         "banquetes_pendientes": SolicitudCatering.query.filter_by(estado="pendiente").count(),
     }), 200
+
+
+# ═══════════════════════════════════════
+#  PEDIDOS (carrito)
+# ═══════════════════════════════════════
+from controllers.pedido_controller import (crear_pedido, obtener_pedidos,
+                                           obtener_pedido, pedidos_por_usuario,
+                                           actualizar_estado_pedido, cancelar_pedido)
+
+@api.post("/pedidos")
+def post_pedido():
+    return resp(*crear_pedido(request.get_json(force=True) or {}))
+
+@api.get("/pedidos")
+def get_pedidos():
+    return resp(*obtener_pedidos())
+
+@api.get("/pedidos/usuario/<int:id_usuario>")
+def get_pedidos_usuario(id_usuario):
+    return resp(*pedidos_por_usuario(id_usuario))
+
+@api.get("/pedidos/<int:no_pedido>")
+def get_pedido(no_pedido):
+    return resp(*obtener_pedido(no_pedido))
+
+@api.put("/pedidos/<int:no_pedido>/estado")
+def put_pedido_estado(no_pedido):
+    return resp(*actualizar_estado_pedido(no_pedido, request.get_json(force=True) or {}))
+
+@api.delete("/pedidos/<int:no_pedido>")
+def delete_pedido(no_pedido):
+    return resp(*cancelar_pedido(no_pedido))
