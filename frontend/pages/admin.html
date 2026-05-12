@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Panadería Gourmet Quetzalteca</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 200, /* Grosor fino para estilo gourmet */
+    'GRAD' 0,
+    'opsz' 24;
+  color: #802840; /* El borgoña que elegimos */
+  vertical-align: middle;
+}
+
+/* Para que los iconos del sidebar se vean blancos o dorados */
+.sidebar .material-symbols-outlined {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+}
+
+.nav-item:hover .material-symbols-outlined,
+.nav-item.active .material-symbols-outlined {
+  color: var(--gold); /* El dorado de tu root */
+}
+
+:root{
+  --gold:#b08850;--gold-light:#c9a76a;--dark-pink:#7d3248;--mid-pink:#c05070;
+  --soft-pink:#e8b4c0;--blush:#f5dde4;--blush-bg:#fdf0f3;
+  --text:#3a3030;--text-light:#7a6060;--white:#fff;
+  --sidebar-w:240px;
+  --green:#2a7a4a;--green-bg:#e8f5ee;
+  --red:#b03030;--red-bg:#fdeaea;
+  --yellow:#8a6a00;--yellow-bg:#fdf5e0;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Jost',sans-serif;color:var(--text);background:#f8f0f3;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
+
+/* ── LOGIN SCREEN ── */
+#login-screen{
+  position:fixed;inset:0;background:linear-gradient(135deg,#d08090,#8a3050 45%,#4a1a2c);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+  transition:opacity .4s ease,visibility .4s ease;
+}
+#login-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.login-card{
+  background:#fff;border-radius:20px;padding:50px 44px 44px;width:100%;max-width:400px;
+  box-shadow:0 30px 80px rgba(60,10,30,.35);
+  animation:loginPop .5s cubic-bezier(.22,1,.36,1);
+}
+@keyframes loginPop{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo h1{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.6rem;color:var(--dark-pink);line-height:1.2}
+.login-logo p{font-size:.72rem;letter-spacing:2px;color:var(--text-light);text-transform:uppercase;margin-top:4px}
+.login-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blush-bg);border:1px solid var(--soft-pink);border-radius:20px;padding:4px 14px;font-size:.72rem;color:var(--dark-pink);font-weight:600;letter-spacing:.5px;margin-bottom:28px}
+.login-field{margin-bottom:18px}
+.login-field label{display:block;font-size:.72rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.login-field input{width:100%;border:1.5px solid #e8d0d8;border-radius:8px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.88rem;color:var(--text);background:#fdf6f8;outline:none;transition:border-color .2s,box-shadow .2s}
+.login-field input:focus{border-color:var(--mid-pink);box-shadow:0 0 0 3px rgba(192,80,112,.1)}
+.login-error{background:var(--red-bg);color:var(--red);border:1px solid #f5c0c0;border-radius:6px;padding:8px 12px;font-size:.78rem;margin-bottom:14px;display:none}
+.login-error.show{display:block}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--dark-pink),var(--mid-pink));color:#fff;border:none;padding:13px;border-radius:8px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;transition:opacity .2s,transform .15s;letter-spacing:.3px}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}
+.login-hint{background:var(--blush-bg);border-radius:8px;padding:12px 14px;margin-top:20px;font-size:.75rem;color:var(--text-light);line-height:1.6}
+.login-hint strong{color:var(--dark-pink)}
+
+/* ── LAYOUT ── */
+#admin-app{display:none;min-height:100vh}
+#admin-app.visible{display:flex}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:linear-gradient(180deg,#4a1a2c 0%,#7d3248 60%,#9a4060);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;
+  box-shadow:4px 0 20px rgba(60,10,30,.25);
+}
+.sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-brand h2{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;color:#fff;line-height:1.3}
+.sidebar-brand p{font-size:.65rem;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+.admin-tag{display:inline-block;background:var(--gold);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.5px;margin-top:8px;font-family:'Jost',sans-serif}
+.sidebar-nav{flex:1;padding:16px 0;overflow-y:auto}
+.nav-section-label{font-size:.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:10px 20px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.7);cursor:pointer;transition:all .18s;font-size:.85rem;font-weight:400;border-left:3px solid transparent;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gold);font-weight:500}
+.nav-item .icon{font-size:1rem;flex-shrink:0;width:20px;text-align:center}
+.nav-divider{height:1px;background:rgba(255,255,255,.1);margin:8px 16px}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-user{display:flex;align-items:center;gap:10px}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0;font-family:'Cormorant Garamond',serif}
+.user-info{flex:1;min-width:0}
+.user-info strong{display:block;font-size:.78rem;color:#fff;font-family:'Jost',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-info span{font-size:.65rem;color:rgba(255,255,255,.5)}
+.btn-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem;padding:4px;transition:color .15s}
+.btn-logout:hover{color:#fff}
+
+/* ── MAIN ── */
+.main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:#fff;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0e0e6;box-shadow:0 2px 8px rgba(140,60,80,.06);position:sticky;top:0;z-index:50}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--dark-pink);font-style:italic}
+.topbar-actions{display:flex;align-items:center;gap:12px}
+.btn-add{background:var(--dark-pink);color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif;display:flex;align-items:center;gap:6px;transition:background .2s,transform .15s;white-space:nowrap}
+.btn-add:hover{background:var(--mid-pink);transform:translateY(-1px)}
+.content-area{flex:1;padding:28px 32px 40px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 3px 14px rgba(140,60,80,.08);border-left:4px solid var(--dark-pink);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;right:-10px;top:-10px;width:70px;height:70px;background:var(--blush-bg);border-radius:50%;opacity:.6}
+.stat-card.gold{border-left-color:var(--gold)}
+.stat-card.green{border-left-color:var(--green)}
+.stat-card.pink{border-left-color:var(--mid-pink)}
+.stat-icon{font-size:1.5rem;margin-bottom:10px}
+.stat-value{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1}
+.stat-label{font-size:.72rem;color:var(--text-light);margin-top:4px;letter-spacing:.3px}
+.stat-change{font-size:.7rem;margin-top:8px;font-weight:500}
+.stat-change.up{color:var(--green)}
+.stat-change.neutral{color:var(--text-light)}
+
+/* ── SECTION PANELS ── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── TABLE ── */
+.table-wrap{background:#fff;border-radius:12px;box-shadow:0 3px 14px rgba(140,60,80,.08);overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #f0e0e6}
+.table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--text)}
+.search-input{border:1.5px solid #e8d0d8;border-radius:6px;padding:7px 12px;font-family:'Jost',sans-serif;font-size:.82rem;color:var(--text);background:#fdf6f8;outline:none;transition:border-color .2s;width:200px}
+.search-input:focus{border-color:var(--mid-pink)}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-light);background:#fdf6f8;border-bottom:1px solid #f0e0e6}
+td{padding:13px 16px;font-size:.84rem;color:var(--text);border-bottom:1px solid #f8eef2;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fdf8fa}
+.course-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;border:2px solid var(--blush)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:600;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-pink{background:var(--blush-bg);color:var(--dark-pink)}
+.actions-cell{display:flex;gap:6px}
+.btn-icon{background:none;border:1px solid #e8d0d8;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.85rem;transition:all .15s;color:var(--text-light)}
+.btn-icon:hover{background:var(--blush-bg);border-color:var(--mid-pink);color:var(--dark-pink)}
+.btn-icon.danger:hover{background:var(--red-bg);border-color:#f5c0c0;color:var(--red)}
+
+/* ── MODAL EDITOR ── */
+.modal-bg{position:fixed;inset:0;background:rgba(40,10,20,.5);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s ease}
+.modal-bg.open{opacity:1;visibility:visible}
+.modal-editor{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 80px rgba(60,10,30,.3);transform:translateY(20px) scale(.97);transition:transform .25s}
+.modal-bg.open .modal-editor{transform:none}
+.modal-editor-header{display:flex;align-items:center;justify-content:space-between;padding:24px 28px 20px;border-bottom:1px solid #f0e0e6;position:sticky;top:0;background:#fff;z-index:10}
+.modal-editor-header h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-style:italic;color:var(--dark-pink)}
+.btn-close-modal{background:none;border:none;cursor:pointer;font-size:1.4rem;color:var(--text-light);line-height:1;padding:4px;transition:color .15s}
+.btn-close-modal:hover{color:var(--dark-pink)}
+.modal-body{padding:24px 28px 28px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:.72rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;border:1.5px solid #e8d0d8;border-radius:7px;padding:10px 13px;font-family:'Jost',sans-serif;font-size:.85rem;color:var(--text);background:#fdf6f8;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--mid-pink)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.img-preview-wrap{border:2px dashed #e8d0d8;border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;background:#fdf6f8}
+.img-preview-wrap:hover{border-color:var(--mid-pink);background:#fdf0f3}
+.img-preview-wrap img{width:100%;max-height:180px;object-fit:cover;border-radius:8px;display:block}
+.img-preview-wrap .img-placeholder{padding:30px 0;color:var(--text-light)}
+.img-preview-wrap .img-placeholder .icon{font-size:2rem;display:block;margin-bottom:8px}
+.img-preview-wrap .img-placeholder p{font-size:.78rem}
+.img-url-input{margin-top:10px;width:100%;border:1.5px solid #e8d0d8;border-radius:6px;padding:8px 12px;font-family:'Jost',sans-serif;font-size:.8rem;color:var(--text);background:#fff;outline:none;transition:border-color .2s}
+.img-url-input:focus{border-color:var(--mid-pink)}
+.modal-footer{padding:0 28px 24px;display:flex;gap:10px;justify-content:flex-end}
+.btn-save{background:var(--dark-pink);color:#fff;border:none;padding:11px 28px;border-radius:7px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;transition:background .2s,transform .15s}
+.btn-save:hover{background:var(--mid-pink);transform:translateY(-1px)}
+.btn-cancel{background:#fff;color:var(--text-light);border:1.5px solid #e8d0d8;padding:10px 24px;border-radius:7px;font-size:.88rem;cursor:pointer;font-family:'Jost',sans-serif;transition:all .15s}
+.btn-cancel:hover{border-color:var(--mid-pink);color:var(--dark-pink)}
+
+/* ── DELETE CONFIRM ── */
+.confirm-bg{position:fixed;inset:0;background:rgba(40,10,20,.5);backdrop-filter:blur(4px);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .2s}
+.confirm-bg.open{opacity:1;visibility:visible}
+.confirm-box{background:#fff;border-radius:14px;padding:32px 32px 26px;max-width:360px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(60,10,30,.3);transform:scale(.95);transition:transform .2s}
+.confirm-bg.open .confirm-box{transform:scale(1)}
+.confirm-box .confirm-icon{font-size:2.5rem;display:block;margin-bottom:14px}
+.confirm-box h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;margin-bottom:8px;color:var(--text)}
+.confirm-box p{font-size:.82rem;color:var(--text-light);line-height:1.6;margin-bottom:22px}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+.btn-confirm-del{background:var(--red);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;transition:opacity .2s}
+.btn-confirm-del:hover{opacity:.85}
+.btn-confirm-cancel{background:#fff;border:1.5px solid #e8d0d8;color:var(--text-light);padding:9px 24px;border-radius:6px;font-size:.85rem;cursor:pointer;font-family:'Jost',sans-serif;transition:all .15s}
+.btn-confirm-cancel:hover{border-color:var(--mid-pink);color:var(--dark-pink)}
+
+/* ── INSCRIPCIONES ── */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-chip{border:1.5px solid #e8d0d8;border-radius:20px;padding:5px 14px;font-size:.75rem;cursor:pointer;transition:all .15s;color:var(--text-light);background:#fff;font-family:'Jost',sans-serif}
+.filter-chip.active,.filter-chip:hover{background:var(--dark-pink);border-color:var(--dark-pink);color:#fff}
+.inscripcion-detail{font-size:.75rem;color:var(--text-light)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--green);color:#fff;padding:12px 20px;border-radius:8px;font-size:.85rem;font-weight:500;font-family:'Jost',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.22,1,.36,1);z-index:999;display:flex;align-items:center;gap:8px;max-width:320px}
+.toast.error{background:var(--red)}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-light)}
+.empty-state .empty-icon{font-size:3rem;display:block;margin-bottom:14px;opacity:.4}
+.empty-state p{font-size:.9rem}
+
+/* ── SETTINGS ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.settings-card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 3px 14px rgba(140,60,80,.08)}
+.settings-card h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--dark-pink);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f0e0e6}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f8eef2}
+.setting-row:last-child{border-bottom:none}
+.setting-row label{font-size:.84rem;color:var(--text)}
+.toggle{position:relative;display:inline-block;width:38px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#e8d0d8;transition:.3s;border-radius:22px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input:checked+.slider{background:var(--dark-pink)}
+input:checked+.slider:before{transform:translateX(16px)}
+.admin-list{display:flex;flex-direction:column;gap:10px}
+.admin-row{display:flex;align-items:center;gap:12px;padding:10px;background:var(--blush-bg);border-radius:8px}
+.admin-row .user-avatar{width:30px;height:30px;font-size:.75rem}
+.admin-row-info{flex:1}
+.admin-row-info strong{font-size:.84rem;display:block}
+.admin-row-info span{font-size:.72rem;color:var(--text-light)}
+.btn-remove-admin{background:none;border:none;cursor:pointer;color:var(--text-light);font-size:.8rem;transition:color .15s}
+.btn-remove-admin:hover{color:var(--red)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .settings-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .sidebar{transform:translateX(-100%)}
+  .main-content{margin-left:0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-row-2,.form-row-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════
+     LOGIN SCREEN
+══════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>Panadería Gourmet<br>Quetzalteca</h1>
+      <p>Panel de Administración</p>
+    </div>
+    <div style="text-align:center;margin-bottom:20px">
+      <span class="login-badge">🔐 Acceso Restringido</span>
+    </div>
+    <div id="login-error" class="login-error"></div>
+    <div class="login-field">
+      <label>Usuario administrador</label>
+      <input type="email" id="admin-email" placeholder="admin@panaderia.com" value="admin@panaderia.com">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="admin-pass" placeholder="••••••••" value="admin2024">
+    </div>
+    <button class="btn-login" onclick="handleAdminLogin()">Entrar al Panel ›</button>
+    <div class="login-hint">
+      <strong>Credenciales de demostración:</strong><br>
+      Usuario: <strong>admin@panaderia.com</strong><br>
+      Contraseña: <strong>admin2024</strong><br>
+      <em style="font-size:.68rem;display:block;margin-top:6px">⚠ Reemplaza estas credenciales con tu base de datos cuando la conectes.</em>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     ADMIN APP
+══════════════════════════ -->
+<div id="admin-app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h2>Panadería Gourmet<br>Quetzalteca</h2>
+      <p>Cocina & Repostería</p>
+      <span class="admin-tag">ADMIN</span>
+    </div>
+    <nav class="sidebar-nav">
+  <div class="nav-section-label">Principal</div>
+  <div class="nav-item active" onclick="showPanel('dashboard')" id="nav-dashboard">
+    <span class="material-symbols-outlined">dashboard</span> Dashboard
+  </div>
+  <div class="nav-item" onclick="showPanel('cursos')" id="nav-cursos">
+    <span class="material-symbols-outlined">menu_book</span> Cursos
+  </div>
+  <div class="nav-item" onclick="showPanel('inscripciones')" id="nav-inscripciones">
+    <span class="material-symbols-outlined">person_add</span> Inscripciones
+  </div>
+  
+  <div class="nav-divider"></div>
+  <div class="nav-section-label">Catálogo</div>
+  <div class="nav-item" onclick="showPanel('pasteleria')" id="nav-pasteleria">
+    <span class="material-symbols-outlined">cake</span> Pastelería
+  </div>
+  <div class="nav-item" onclick="showPanel('banquetes')" id="nav-banquetes">
+    <span class="material-symbols-outlined">restaurant</span> Solicitudes Banquetes
+  </div>
+  
+  <div class="nav-divider"></div>
+  <div class="nav-section-label">Sistema</div>
+  <div class="nav-item" onclick="showPanel('ajustes')" id="nav-ajustes">
+    <span class="material-symbols-outlined">settings</span> Ajustes
+  </div>
+</nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <strong id="sidebar-name">Administrador</strong>
+          <span>En línea</span>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesión">
+  <span class="material-symbols-outlined" style="font-size: 1.1rem;">logout</span>
+</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn-add" id="btn-add-main" onclick="openAddModal()" style="display:none">+ Nuevo Curso</button>
+        <span style="font-size:.78rem;color:var(--text-light)" id="topbar-date"></span>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value" id="stat-cursos">6</div>
+            <div class="stat-label">Cursos Activos</div>
+            <div class="stat-change neutral">Este mes</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-icon">✍️</div>
+            <div class="stat-value" id="stat-inscripciones">12</div>
+            <div class="stat-label">Inscripciones</div>
+            <div class="stat-change up">↑ 3 esta semana</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="stat-ingresos">Q.2,850</div>
+            <div class="stat-label">Ingresos estimados</div>
+            <div class="stat-change up">↑ Mes actual</div>
+          </div>
+          <div class="stat-card pink">
+            <div class="stat-icon">🍽</div>
+            <div class="stat-value" id="stat-banquetes">3</div>
+            <div class="stat-label">Solicitudes Banquetes</div>
+            <div class="stat-change neutral">Pendientes</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Próximos Cursos</h3>
+            <button class="btn-add" onclick="showPanel('cursos')">Ver todos ›</button>
+          </div>
+          <table id="dashboard-cursos-table">
+            <thead><tr>
+              <th>Curso</th><th>Fecha</th><th>Precio</th><th>Estado</th>
+            </tr></thead>
+            <tbody id="dashboard-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── CURSOS ── -->
+      <div class="panel" id="panel-cursos">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Gestión de Cursos</h3>
+            <div style="display:flex;gap:10px;align-items:center">
+              <input class="search-input" type="text" placeholder="Buscar curso..." oninput="filterCursos(this.value)" id="search-cursos">
+              <button class="btn-add" onclick="openAddModal()">+ Nuevo Curso</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr>
+              <th style="width:50px"></th>
+              <th>Curso</th><th>Fecha</th><th>Horario</th><th>Nivel</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="cursos-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── INSCRIPCIONES ── -->
+      <div class="panel" id="panel-inscripciones">
+        <div class="filter-bar">
+          <span style="font-size:.78rem;font-weight:600;color:var(--text-light);margin-right:4px">Filtrar:</span>
+          <div class="filter-chip active" onclick="filterInscripciones('todos',this)">Todos</div>
+          <div class="filter-chip" onclick="filterInscripciones('confirmada',this)">Confirmadas</div>
+          <div class="filter-chip" onclick="filterInscripciones('pendiente',this)">Pendientes</div>
+          <div class="filter-chip" onclick="filterInscripciones('cancelada',this)">Canceladas</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Inscripciones a Cursos</h3>
+            <input class="search-input" type="text" placeholder="Buscar alumno..." oninput="filterInscripcionesSearch(this.value)">
+          </div>
+          <table>
+            <thead><tr>
+              <th>Alumno</th><th>Curso</th><th>Fecha Inscripción</th><th>Estado</th><th>Pago</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="inscripciones-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PASTELERÍA ── -->
+      <div class="panel" id="panel-pasteleria">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Catálogo de Pastelería</h3>
+            <button class="btn-add" onclick="openAddPastelModal()">+ Nuevo Producto</button>
+          </div>
+          <table>
+            <thead><tr>
+              <th style="width:50px"></th>
+              <th>Producto</th><th>Descripción</th><th>Precio</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="pasteleria-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── BANQUETES ── -->
+      <div class="panel" id="panel-banquetes">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Solicitudes de Banquetes</h3>
+            <span class="badge badge-yellow">3 pendientes</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Cliente</th><th>Tipo de Evento</th><th>Fecha Evento</th><th>Personas</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="banquetes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── AJUSTES ── -->
+      <div class="panel" id="panel-ajustes">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Cuenta Admin</h3>
+            <div class="form-group">
+              <label>Nombre del administrador</label>
+              <input type="text" id="setting-name" value="Administrador" oninput="updateSidebarName(this.value)">
+            </div>
+            <div class="form-group">
+              <label>Correo electrónico</label>
+              <input type="email" id="setting-email" value="admin@panaderia.com">
+            </div>
+            <div class="form-group">
+              <label>Nueva contraseña</label>
+              <input type="password" placeholder="Dejar en blanco para no cambiar">
+            </div>
+            <button class="btn-save" onclick="showToast('Configuración guardada','success')">Guardar Cambios</button>
+          </div>
+          <div class="settings-card">
+            <h3>Notificaciones</h3>
+            <div class="setting-row">
+              <label>Nueva inscripción</label>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <label>Solicitud de banquete</label>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <label>Recordatorio de curso (24h antes)</label>
+              <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <label>Reporte semanal</label>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Administradores Autorizados</h3>
+            <div class="admin-list" id="admin-list">
+              <div class="admin-row">
+                <div class="user-avatar">A</div>
+                <div class="admin-row-info"><strong>Administrador Principal</strong><span>admin@panaderia.com · Super Admin</span></div>
+              </div>
+            </div>
+            <div style="margin-top:14px">
+              <div class="form-group" style="margin-bottom:10px">
+                <label>Agregar administrador</label>
+                <input type="email" id="new-admin-email" placeholder="correo@ejemplo.com">
+              </div>
+              <button class="btn-save" onclick="addAdmin()" style="padding:8px 18px;font-size:.82rem">Agregar ›</button>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Estado del Sistema</h3>
+            <div class="setting-row"><label>Sitio web activo</label><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="setting-row"><label>Registro de usuarios</label><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="setting-row"><label>Modo mantenimiento</label><label class="toggle"><input type="checkbox"><span class="slider"></span></label></div>
+            <div style="margin-top:16px;padding:12px;background:var(--blush-bg);border-radius:8px;font-size:.75rem;color:var(--text-light);line-height:1.6">
+              <strong style="color:var(--dark-pink)">🗄 Base de datos:</strong> No conectada aún<br>
+              <strong style="color:var(--dark-pink)">📡 API:</strong> Modo local (localStorage)<br>
+              <em>Conecta tu base de datos para persistencia real de datos.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content-area -->
+  </main>
+</div><!-- end admin-app -->
+
+<!-- ══ MODAL EDITOR CURSO ══ -->
+<div class="modal-bg" id="curso-modal" onclick="handleModalBgClick(event,'curso-modal')">
+  <div class="modal-editor">
+    <div class="modal-editor-header">
+      <h2 id="curso-modal-title">Nuevo Curso</h2>
+      <button class="btn-close-modal" onclick="closeCursoModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="curso-id">
+      <div class="form-group">
+        <label>Título del Curso *</label>
+        <input type="text" id="curso-titulo" placeholder="ej. Taller de Panadería">
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" id="curso-fecha">
+        </div>
+        <div class="form-group">
+          <label>Precio *</label>
+          <input type="text" id="curso-precio" placeholder="ej. Q.250">
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Horario</label>
+          <input type="text" id="curso-hora" placeholder="9:00 am – 1:00 pm">
+        </div>
+        <div class="form-group">
+          <label>Nivel</label>
+          <select id="curso-nivel">
+            <option>Principiantes</option>
+            <option>Todos los niveles</option>
+            <option>Intermedio</option>
+            <option>Avanzado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Duración</label>
+          <input type="text" id="curso-duracion" placeholder="ej. 4 horas">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Extras / Incluye</label>
+        <input type="text" id="curso-extras" placeholder="ej. Materiales incluidos, Cena incluida">
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="curso-estado">
+          <option value="disponible">Disponible</option>
+          <option value="lleno">Lleno</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Descripción completa</label>
+        <textarea id="curso-desc" placeholder="Describe el contenido del curso, qué aprenderán los participantes, qué llevarán a casa, etc."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Imagen del curso</label>
+        <div class="img-preview-wrap" id="img-preview-area">
+          <div class="img-placeholder" id="img-placeholder">
+            <span class="icon">🖼</span>
+            <p>Pega la URL de la imagen abajo</p>
+          </div>
+          <img id="img-preview" style="display:none" src="" alt="Preview">
+        </div>
+        <input class="img-url-input" type="url" id="curso-imagen" placeholder="https://images.unsplash.com/..." oninput="previewImage(this.value)">
+        <p style="font-size:.7rem;color:var(--text-light);margin-top:5px">Puedes usar imágenes de Unsplash, Cloudinary u otro CDN.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCursoModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveCurso()">Guardar Curso ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL EDITOR PASTEL ══ -->
+<div class="modal-bg" id="pastel-modal" onclick="handleModalBgClick(event,'pastel-modal')">
+  <div class="modal-editor">
+    <div class="modal-editor-header">
+      <h2 id="pastel-modal-title">Nuevo Producto</h2>
+      <button class="btn-close-modal" onclick="closePastelModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pastel-id">
+      <div class="form-group"><label>Nombre del Producto *</label><input type="text" id="pastel-nombre" placeholder="ej. Pastel de Bodas"></div>
+      <div class="form-group"><label>Descripción</label><textarea id="pastel-desc" placeholder="Breve descripción del producto"></textarea></div>
+      <div class="form-group"><label>Precio</label><input type="text" id="pastel-precio" placeholder="ej. Desde Q.800"></div>
+      <div class="form-group">
+        <label>Imagen</label>
+        <input class="img-url-input" type="url" id="pastel-imagen" placeholder="https://..." style="border:1.5px solid #e8d0d8;border-radius:7px;padding:10px 13px;width:100%">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closePastelModal()">Cancelar</button>
+      <button class="btn-save" onclick="savePastel()">Guardar ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL VER INSCRIPCION ══ -->
+<div class="modal-bg" id="inscripcion-modal" onclick="handleModalBgClick(event,'inscripcion-modal')">
+  <div class="modal-editor" style="max-width:480px">
+    <div class="modal-editor-header">
+      <h2>Detalle de Inscripción</h2>
+      <button class="btn-close-modal" onclick="closeInscripcionModal()">×</button>
+    </div>
+    <div class="modal-body" id="inscripcion-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeInscripcionModal()">Cerrar</button>
+      <button class="btn-save" id="btn-confirm-inscripcion" onclick="">Confirmar Pago ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM DELETE ══ -->
+<div class="confirm-bg" id="confirm-bg">
+  <div class="confirm-box">
+    <span class="confirm-icon">🗑</span>
+    <h3 id="confirm-title">¿Eliminar este curso?</h3>
+    <p id="confirm-desc">Esta acción no se puede deshacer. El curso será eliminado permanentemente.</p>
+    <div class="confirm-btns">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-confirm-del" id="btn-confirm-del">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// ESTADO GLOBAL (reemplazar con DB real)
+// ══════════════════════════════════════
+
+const DEMO_CURSOS = [
+  {id:1,titulo:'Taller de Panadería',fecha:'2026-05-10',hora:'9:00 am – 1:00 pm',nivel:'Principiantes',duracion:'4 horas',extras:'Materiales incluidos',precio:'Q.200',estado:'disponible',descripcion:'Aprende los fundamentos de la panadería artesanal. Prepararás pan francés, ciabatta y panes dulces desde cero.',imagen:'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=70'},
+  {id:2,titulo:'Clase de Repostería',fecha:'2026-05-15',hora:'3:00 pm – 7:00 pm',nivel:'Todos los niveles',duracion:'4 horas',extras:'Materiales incluidos',precio:'Q.250',estado:'disponible',descripcion:'Domina las técnicas esenciales de la repostería: mousse, ganache, bizcochos perfectos y decoraciones en crema.',imagen:'https://images.unsplash.com/photo-1587248720327-8eb72564be1e?w=400&q=70'},
+  {id:3,titulo:'Cocina Italiana',fecha:'2026-05-22',hora:'10:00 am – 2:00 pm',nivel:'Intermedio',duracion:'4 horas',extras:'Cena incluida',precio:'Q.300',estado:'disponible',descripcion:'Un recorrido por los sabores de Italia. Prepararás pasta fresca, risotto cremoso y tiramisú auténtico.',imagen:'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=70'},
+  {id:4,titulo:'Decoración de Pasteles',fecha:'2026-05-29',hora:'9:00 am – 12:00 pm',nivel:'Avanzado',duracion:'3 horas',extras:'Lleva tu pastel',precio:'Q.350',estado:'lleno',descripcion:'Taller intensivo de decoración: fondant, buttercream artístico, flores de azúcar y técnicas de alisado.',imagen:'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400&q=70'},
+  {id:5,titulo:'Macarons Franceses',fecha:'2026-06-07',hora:'10:00 am – 1:00 pm',nivel:'Intermedio',duracion:'3 horas',extras:'Materiales incluidos',precio:'Q.280',estado:'disponible',descripcion:'Descifra los secretos de los macarons perfectos: punto de merengue, macaronage y rellenos de ganache.',imagen:'https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=400&q=70'},
+  {id:6,titulo:'Cheesecake Artesanal',fecha:'2026-06-14',hora:'2:00 pm – 5:00 pm',nivel:'Principiantes',duracion:'3 horas',extras:'Materiales incluidos',precio:'Q.220',estado:'disponible',descripcion:'Aprende a preparar cheesecakes horneados y sin horno, con variedad de toppings de temporada.',imagen:'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&q=70'},
+];
+
+const DEMO_INSCRIPCIONES = [
+  {id:1,alumno:'María González',email:'maria@gmail.com',telefono:'+502 5555 1234',cursoId:1,fechaInscripcion:'2026-05-01',estado:'confirmada',pago:'Q.200',metodoPago:'Transferencia'},
+  {id:2,alumno:'Carlos Rodríguez',email:'carlos@hotmail.com',telefono:'+502 5555 5678',cursoId:2,fechaInscripcion:'2026-05-02',estado:'pendiente',pago:'Q.250',metodoPago:'Efectivo'},
+  {id:3,alumno:'Ana López',email:'ana@gmail.com',telefono:'+502 5555 9012',cursoId:1,fechaInscripcion:'2026-05-03',estado:'confirmada',pago:'Q.200',metodoPago:'Tarjeta'},
+  {id:4,alumno:'Pedro Martínez',email:'pedro@gmail.com',telefono:'+502 5555 3456',cursoId:3,fechaInscripcion:'2026-05-04',estado:'pendiente',pago:'Q.300',metodoPago:'Transferencia'},
+  {id:5,alumno:'Lucía Hernández',email:'lucia@yahoo.com',telefono:'+502 5555 7890',cursoId:4,fechaInscripcion:'2026-04-28',estado:'confirmada',pago:'Q.350',metodoPago:'Tarjeta'},
+  {id:6,alumno:'Diego Torres',email:'diego@gmail.com',telefono:'+502 5555 2345',cursoId:2,fechaInscripcion:'2026-05-05',estado:'cancelada',pago:'Q.250',metodoPago:'Transferencia'},
+  {id:7,alumno:'Sofía Castro',email:'sofia@gmail.com',telefono:'+502 5555 6789',cursoId:5,fechaInscripcion:'2026-05-06',estado:'pendiente',pago:'Q.280',metodoPago:'Efectivo'},
+  {id:8,alumno:'Fernando Díaz',email:'fdiaz@outlook.com',telefono:'+502 5555 0123',cursoId:3,fechaInscripcion:'2026-05-07',estado:'confirmada',pago:'Q.300',metodoPago:'Tarjeta'},
+];
+
+const DEMO_PASTELES = [
+  {id:1,nombre:'Pastel de Bodas',descripcion:'Diseño personalizado, varios pisos y sabores a elegir.',precio:'Desde Q.800',imagen:'https://images.unsplash.com/photo-1587248720327-8eb72564be1e?w=400&q=70'},
+  {id:2,nombre:'Torta de Cumpleaños',descripcion:'Temáticas especiales para niños y adultos.',precio:'Desde Q.350',imagen:'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=70'},
+  {id:3,nombre:'Cupcakes Gourmet',descripcion:'Variedad de sabores con decoración artesanal.',precio:'Q.25 c/u',imagen:'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400&q=70'},
+  {id:4,nombre:'Cheesecake Artesanal',descripcion:'Base de galleta, crema Philadelphia y toppings de temporada.',precio:'Desde Q.180',imagen:'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&q=70'},
+  {id:5,nombre:'Pan Artesanal',descripcion:'Horneado fresco diariamente con masa madre.',precio:'Desde Q.45',imagen:'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=70'},
+  {id:6,nombre:'Macarons Franceses',descripcion:'Delicados y crujientes, rellenos de ganache o buttercream.',precio:'Q.30 c/u',imagen:'https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=400&q=70'},
+];
+
+const DEMO_BANQUETES = [
+  {id:1,cliente:'Familia García',email:'garcia@gmail.com',telefono:'+502 5555 1111',tipoEvento:'Boda',fechaEvento:'2026-06-15',personas:120,mensaje:'Boda al aire libre, menú buffet con opción vegetariana.',estado:'pendiente'},
+  {id:2,cliente:'Empresa Tech S.A.',email:'eventos@techsa.com',telefono:'+502 2222 3333',tipoEvento:'Evento Corporativo',fechaEvento:'2026-05-20',personas:50,mensaje:'Almuerzo ejecutivo para conferencia anual.',estado:'confirmada'},
+  {id:3,cliente:'Ana Pérez',email:'anaperez@gmail.com',telefono:'+502 5555 4444',tipoEvento:'Celebración Privada',fechaEvento:'2026-07-01',personas:40,mensaje:'Quinceaños, necesito pastel + catering completo.',estado:'pendiente'},
+];
+
+// Load from localStorage if available
+var cursosData = JSON.parse(localStorage.getItem('admin_cursos') || 'null') || [...DEMO_CURSOS];
+var inscripcionesData = JSON.parse(localStorage.getItem('admin_inscripciones') || 'null') || [...DEMO_INSCRIPCIONES];
+var pasteriaData = JSON.parse(localStorage.getItem('admin_pasteles') || 'null') || [...DEMO_PASTELES];
+var banquetesData = JSON.parse(localStorage.getItem('admin_banquetes') || 'null') || [...DEMO_BANQUETES];
+
+function saveToStorage(){
+  localStorage.setItem('admin_cursos', JSON.stringify(cursosData));
+  localStorage.setItem('admin_inscripciones', JSON.stringify(inscripcionesData));
+  localStorage.setItem('admin_pasteles', JSON.stringify(pasteriaData));
+  localStorage.setItem('admin_banquetes', JSON.stringify(banquetesData));
+}
+
+// ══ AUTH — conectado a la API real de Flask ══
+var currentAdmin = null;
+
+async function handleAdminLogin(){
+  const email = document.getElementById('admin-email').value.trim();
+  const pass = document.getElementById('admin-pass').value;
+  const errEl = document.getElementById('login-error');
+
+  if(!email || !pass){
+    errEl.textContent = 'Por favor ingresa tu correo y contraseña.';
+    errEl.classList.add('show'); return;
+  }
+  errEl.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password: pass})
+    });
+    const data = await res.json();
+
+    if(!res.ok){
+      errEl.textContent = data.message || 'Credenciales incorrectas.';
+      errEl.classList.add('show'); return;
+    }
+
+    // ⚠ Cambia el número 2 si tu rol Administrador tiene otro id_rol en la BD
+    if(data.usuario.id_rol !== 2){
+      errEl.textContent = 'No tienes permisos de administrador.';
+      errEl.classList.add('show'); return;
+    }
+
+    currentAdmin = {
+      name : data.usuario.nombre_completo,
+      email: data.usuario.email,
+      id_rol: data.usuario.id_rol
+    };
+    sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
+    _mostrarPanelAdmin();
+
+  } catch(e) {
+    errEl.textContent = 'Error de conexión con el servidor.';
+    errEl.classList.add('show');
+  }
+}
+
+function _mostrarPanelAdmin(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('admin-app').classList.add('visible');
+  document.getElementById('sidebar-name').textContent = currentAdmin.name;
+  document.getElementById('sidebar-avatar').textContent = currentAdmin.name[0].toUpperCase();
+  document.getElementById('setting-name').value = currentAdmin.name;
+  document.getElementById('setting-email').value = currentAdmin.email;
+  initApp();
+}
+
+// Allow Enter key on login
+document.addEventListener('DOMContentLoaded', () => {
+  ['admin-email','admin-pass'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if(e.key === 'Enter') handleAdminLogin();
+    });
+  });
+  // Check existing session
+  const session = sessionStorage.getItem('admin_session');
+  if(session){
+    currentAdmin = JSON.parse(session);
+    _mostrarPanelAdmin();
+  }
+  // Set date
+  const now = new Date();
+  document.getElementById('topbar-date').textContent = now.toLocaleDateString('es-GT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+});
+
+function handleLogout(){
+  sessionStorage.removeItem('admin_session');
+  currentAdmin = null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('admin-app').classList.remove('visible');
+  document.getElementById('admin-pass').value = '';
+}
+
+// ══ INIT ══
+function initApp(){
+  // Renderiza con datos demo mientras carga la API (evita pantalla en blanco)
+  renderDashboard();
+  renderCursos();
+  renderInscripciones();
+  renderPasteleria();
+  renderBanquetes();
+  // NOTA: admin.js se auto-ejecuta al cargarse y reemplaza los datos demo
+  // con los datos reales de la base de datos automáticamente
+}
+
+// ══ NAVIGATION ══
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+
+  const titles = {
+    dashboard:'Dashboard',cursos:'Cursos',inscripciones:'Inscripciones',
+    pasteleria:'Pastelería',banquetes:'Solicitudes de Banquetes',ajustes:'Ajustes'
+  };
+  document.getElementById('topbar-title').textContent = titles[name] || name;
+  const addBtn = document.getElementById('btn-add-main');
+  addBtn.style.display = (name === 'cursos') ? 'flex' : 'none';
+}
+
+// ══ DASHBOARD ══
+function renderDashboard(){
+  document.getElementById('stat-cursos').textContent = cursosData.filter(c=>c.estado==='disponible').length;
+  document.getElementById('stat-inscripciones').textContent = inscripcionesData.filter(i=>i.estado!=='cancelada').length;
+  const ingresos = inscripcionesData.filter(i=>i.estado==='confirmada').reduce((sum,i)=>{
+    const n = parseInt((i.pago||'0').replace(/[^0-9]/g,''))||0; return sum+n;
+  },0);
+  document.getElementById('stat-ingresos').textContent = 'Q.'+ingresos.toLocaleString();
+  document.getElementById('stat-banquetes').textContent = banquetesData.filter(b=>b.estado==='pendiente').length;
+
+  const next4 = [...cursosData].sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).slice(0,4);
+  document.getElementById('dashboard-tbody').innerHTML = next4.map(c=>`
+    <tr>
+      <td><strong>${c.titulo}</strong></td>
+      <td>${formatDate(c.fecha)}</td>
+      <td><strong>${c.precio}</strong></td>
+      <td>${estadoBadge(c.estado)}</td>
+    </tr>
+  `).join('');
+}
+
+// ══ CURSOS ══
+function renderCursos(list){
+  const data = list || cursosData;
+  document.getElementById('cursos-tbody').innerHTML = data.length === 0
+    ? `<tr><td colspan="8"><div class="empty-state"><span class="empty-icon">📅</span><p>No hay cursos. Agrega uno nuevo.</p></div></td></tr>`
+    : data.map(c=>`
+    <tr>
+      <td><img class="course-thumb" src="${c.imagen||'https://via.placeholder.com/44x44/f5dde4/7d3248?text=📅'}" alt="${c.titulo}" onerror="this.src='https://via.placeholder.com/44x44/f5dde4/7d3248?text=📅'"></td>
+      <td><strong>${c.titulo}</strong><div style="font-size:.72rem;color:var(--text-light)">${c.duracion} · ${c.nivel}</div></td>
+      <td>${formatDate(c.fecha)}</td>
+      <td style="font-size:.78rem">${c.hora||'—'}</td>
+      <td><span style="font-size:.78rem">${c.nivel}</span></td>
+      <td><strong>${c.precio}</strong></td>
+      <td>${estadoBadge(c.estado)}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="btn-icon" onclick="openEditCurso(${c.id})" title="Editar">✏️</button>
+          <button class="btn-icon danger" onclick="confirmDeleteCurso(${c.id})" title="Eliminar">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterCursos(q){
+  const filtered = cursosData.filter(c => c.titulo.toLowerCase().includes(q.toLowerCase()));
+  renderCursos(filtered);
+}
+
+// ══ CURSO MODAL ══
+function openAddModal(){
+  document.getElementById('curso-modal-title').textContent = 'Nuevo Curso';
+  document.getElementById('curso-id').value = '';
+  ['titulo','fecha','precio','hora','duracion','extras','desc','imagen'].forEach(f => {
+    const el = document.getElementById('curso-'+f);
+    if(el) el.value = '';
+  });
+  document.getElementById('curso-nivel').value = 'Principiantes';
+  document.getElementById('curso-estado').value = 'disponible';
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('img-placeholder').style.display = 'block';
+  document.getElementById('curso-modal').classList.add('open');
+}
+
+function openEditCurso(id){
+  const c = cursosData.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('curso-modal-title').textContent = 'Editar Curso';
+  document.getElementById('curso-id').value = c.id;
+  document.getElementById('curso-titulo').value = c.titulo;
+  document.getElementById('curso-fecha').value = c.fecha;
+  // FIX precio: extraer solo el número (ej. "Q.250" → "250") para evitar
+  // que el regex de apiSaveCurso interprete ".250" como 0.25
+  document.getElementById('curso-precio').value = c.precioNum !== undefined
+    ? c.precioNum
+    : parseFloat(String(c.precio).replace(/[^0-9.]/g,'').replace(/^\./, '')) || '';
+  document.getElementById('curso-hora').value = c.hora;
+  document.getElementById('curso-nivel').value = c.nivel;
+  document.getElementById('curso-duracion').value = c.duracion;
+  document.getElementById('curso-extras').value = c.extras;
+  document.getElementById('curso-estado').value = c.estado;
+  document.getElementById('curso-desc').value = c.descripcion;
+  document.getElementById('curso-imagen').value = c.imagen||'';
+  previewImage(c.imagen||'');
+  document.getElementById('curso-modal').classList.add('open');
+}
+
+function closeCursoModal(){ document.getElementById('curso-modal').classList.remove('open'); }
+
+function previewImage(url){
+  const img = document.getElementById('img-preview');
+  const ph = document.getElementById('img-placeholder');
+  if(url && url.startsWith('http')){
+    img.src = url;
+    img.style.display = 'block';
+    ph.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    ph.style.display = 'block';
+  }
+}
+
+async function saveCurso(){
+  const titulo = document.getElementById('curso-titulo').value.trim();
+  const fecha = document.getElementById('curso-fecha').value;
+  const precio = document.getElementById('curso-precio').value.trim();
+  if(!titulo || !fecha || !precio){
+    showToast('Por favor completa los campos obligatorios (*)','error'); return;
+  }
+  const id = document.getElementById('curso-id').value;
+  const payload = {
+    titulo, fecha, precio,
+    hora: document.getElementById('curso-hora').value,
+    nivel: document.getElementById('curso-nivel').value,
+    duracion: document.getElementById('curso-duracion').value,
+    extras: document.getElementById('curso-extras').value,
+    estado: document.getElementById('curso-estado').value,
+    descripcion: document.getElementById('curso-desc').value,
+    imagen: document.getElementById('curso-imagen').value,
+    // Campos requeridos por el backend
+    modalidad: 'Presencial',
+    cupo_maximo: 20,
+    id_docente: 1,
+  };
+  closeCursoModal();
+  // Llama a admin.js que hace el fetch real a Flask
+  await apiSaveCurso(payload, id ? parseInt(id) : null);
+}
+
+// ══ DELETE CURSO ══
+var pendingDeleteId = null, pendingDeleteType = null;
+
+function confirmDeleteCurso(id){
+  const c = cursosData.find(x=>x.id===id);
+  document.getElementById('confirm-title').textContent = '¿Eliminar este curso?';
+  document.getElementById('confirm-desc').textContent = `Se eliminará "${c?.titulo}". Esta acción no se puede deshacer.`;
+  document.getElementById('btn-confirm-del').onclick = async () => {
+    closeConfirm();
+    await apiDeleteCurso(id);
+  };
+  document.getElementById('confirm-bg').classList.add('open');
+}
+
+function closeConfirm(){ document.getElementById('confirm-bg').classList.remove('open'); }
+
+// ══ INSCRIPCIONES ══
+var inscripcionFilter = 'todos';
+
+function renderInscripciones(list){
+  const data = list || (inscripcionFilter === 'todos' ? inscripcionesData : inscripcionesData.filter(i=>i.estado===inscripcionFilter));
+  document.getElementById('inscripciones-tbody').innerHTML = data.length === 0
+    ? `<tr><td colspan="6"><div class="empty-state"><span class="empty-icon">✍️</span><p>No hay inscripciones.</p></div></td></tr>`
+    : data.map(i=>{
+      const curso = cursosData.find(c=>c.id===i.cursoId);
+      return `<tr>
+        <td>
+          <strong>${i.alumno}</strong>
+          <div class="inscripcion-detail">${i.email}</div>
+        </td>
+        <td style="font-size:.82rem">${curso?.titulo||'—'}<div class="inscripcion-detail">${curso?formatDate(curso.fecha):''}</div></td>
+        <td style="font-size:.78rem">${formatDate(i.fechaInscripcion)}</td>
+        <td>${estadoInscripcionBadge(i.estado)}</td>
+        <td><strong>${i.pago}</strong><div class="inscripcion-detail">${i.metodoPago}</div></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-icon" onclick="verInscripcion(${i.id})" title="Ver detalle">👁</button>
+            ${i.estado==='pendiente'?`<button class="btn-icon" onclick="confirmarInscripcion(${i.id})" title="Confirmar pago" style="color:var(--green)">✓</button>`:''}
+            <button class="btn-icon danger" onclick="cancelarInscripcion(${i.id})" title="Cancelar">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+}
+
+function filterInscripciones(estado, el){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  inscripcionFilter = estado;
+  renderInscripciones();
+}
+
+function filterInscripcionesSearch(q){
+  const filtered = inscripcionesData.filter(i =>
+    (i.alumno||'').toLowerCase().includes(q.toLowerCase()) ||
+    (i.email||'').toLowerCase().includes(q.toLowerCase())
+  );
+  renderInscripciones(filtered);
+}
+
+function verInscripcion(id){
+  const i = inscripcionesData.find(x=>x.id===id);
+  const curso = cursosData.find(c=>c.id===i.cursoId);
+  document.getElementById('inscripcion-detail-body').innerHTML = `
+    <div style="display:grid;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Alumno</label><strong>${i.alumno}</strong></div>
+        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Estado</label>${estadoInscripcionBadge(i.estado)}</div>
+      </div>
+      <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Correo</label>${i.email}</div>
+      <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Teléfono</label>${i.telefono||'No especificado'}</div>
+      <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Curso</label><strong>${curso?.titulo||'—'}</strong> · ${curso?formatDate(curso.fecha):''}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Pago</label><strong style="color:var(--gold);font-size:1.1rem">${i.pago}</strong></div>
+        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Método</label>${i.metodoPago}</div>
+      </div>
+      <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Fecha de inscripción</label>${formatDate(i.fechaInscripcion)}</div>
+    </div>
+  `;
+  const btnConf = document.getElementById('btn-confirm-inscripcion');
+  if(i.estado==='pendiente'){
+    btnConf.style.display='block';
+    btnConf.onclick = () => { confirmarInscripcion(id); closeInscripcionModal(); };
+  } else { btnConf.style.display='none'; }
+  document.getElementById('inscripcion-modal').classList.add('open');
+}
+
+function closeInscripcionModal(){ document.getElementById('inscripcion-modal').classList.remove('open'); }
+
+async function confirmarInscripcion(id){
+  await apiConfirmarInscripcion(id);
+}
+
+async function cancelarInscripcion(id){
+  await apiCancelarInscripcion(id);
+}
+
+// ══ PASTELERÍA ══
+function renderPasteleria(){
+  document.getElementById('pasteleria-tbody').innerHTML = pasteriaData.map(p=>`
+    <tr>
+      <td><img class="course-thumb" src="${p.imagen||''}" alt="${p.nombre}" onerror="this.style.display='none'"></td>
+      <td><strong>${p.nombre}</strong></td>
+      <td style="font-size:.8rem;color:var(--text-light);max-width:250px">${p.descripcion}</td>
+      <td><strong>${p.precio}</strong></td>
+      <td>
+        <div class="actions-cell">
+          <button class="btn-icon" onclick="openEditPastel(${p.id})" title="Editar">✏️</button>
+          <button class="btn-icon danger" onclick="deletePastel(${p.id})" title="Eliminar">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddPastelModal(){
+  document.getElementById('pastel-modal-title').textContent = 'Nuevo Producto';
+  ['pastel-id','pastel-nombre','pastel-desc','pastel-precio','pastel-imagen'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('pastel-modal').classList.add('open');
+}
+
+async function openEditPastel(id){
+  // FIX: carga datos frescos desde la API para garantizar edición correcta
+  let p = null;
+  if (typeof apiCargarProductoParaEditar === 'function') {
+    p = await apiCargarProductoParaEditar(id);
+  } else {
+    p = pasteriaData.find(x=>x.id===id);
+  }
+  if(!p) { showToast('No se pudo cargar el producto','error'); return; }
+  document.getElementById('pastel-modal-title').textContent = 'Editar Producto';
+  document.getElementById('pastel-id').value = p.id;
+  document.getElementById('pastel-nombre').value = p.nombre;
+  document.getElementById('pastel-desc').value = p.descripcion;
+  document.getElementById('pastel-precio').value = p.precioNum !== undefined
+    ? p.precioNum
+    : parseFloat(String(p.precio).replace(/^[^\d]+/, "")) || "";
+  document.getElementById('pastel-imagen').value = p.imagen||'';
+  document.getElementById('pastel-modal').classList.add('open');
+}
+
+function closePastelModal(){ document.getElementById('pastel-modal').classList.remove('open'); }
+
+async function savePastel(){
+  const nombre = document.getElementById('pastel-nombre').value.trim();
+  if(!nombre){ showToast('El nombre es obligatorio','error'); return; }
+  const id = document.getElementById('pastel-id').value;
+  const payload = {
+    nombre,
+    descripcion: document.getElementById('pastel-desc').value,
+    precio: document.getElementById('pastel-precio').value,
+    imagen: document.getElementById('pastel-imagen').value,
+    id_categoria: 1,
+  };
+  closePastelModal();
+  await apiSaveProducto(payload, id ? parseInt(id) : null);
+}
+
+async function deletePastel(id){
+  // CORRECCIÓN: llamar a la API real en lugar de sólo borrar de localStorage
+  if (typeof apiDeleteProducto === 'function') {
+    await apiDeleteProducto(id);
+  } else {
+    pasteriaData = pasteriaData.filter(p=>p.id!==id);
+    window.pasteriaData = pasteriaData;
+    renderPasteleria();
+    showToast('Producto eliminado');
+  }
+}
+
+// ══ BANQUETES ══
+function renderBanquetes(){
+  document.getElementById('banquetes-tbody').innerHTML = banquetesData.map(b=>`
+    <tr>
+      <td>
+        <strong>${b.cliente}</strong>
+        <div class="inscripcion-detail">${b.email}</div>
+      </td>
+      <td style="font-size:.82rem">${b.tipoEvento}</td>
+      <td style="font-size:.82rem">${formatDate(b.fechaEvento)}</td>
+      <td style="font-size:.82rem">${b.personas} personas</td>
+      <td>${estadoBanqueteBadge(b.estado)}</td>
+      <td>
+        <div class="actions-cell">
+          ${b.estado==='pendiente'?`<button class="btn-icon" onclick="confirmarBanquete(${b.id})" title="Confirmar" style="color:var(--green)">✓ Confirmar</button>`:''}
+          ${b.estado!=='rechazada'?`<button class="btn-icon danger" onclick="rechazarBanquete(${b.id})" title="Rechazar">✕</button>`:''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function confirmarBanquete(id){
+  await apiConfirmarBanquete(id);
+}
+
+async function rechazarBanquete(id){
+  await apiRechazarBanquete(id);
+}
+
+// ══ AJUSTES ══
+function updateSidebarName(val){
+  document.getElementById('sidebar-name').textContent = val || 'Administrador';
+  const initials = (val || 'A')[0].toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+}
+
+function addAdmin(){
+  const email = document.getElementById('new-admin-email').value.trim();
+  if(!email || !email.includes('@')){ showToast('Ingresa un correo válido','error'); return; }
+  const list = document.getElementById('admin-list');
+  const initial = email[0].toUpperCase();
+  list.insertAdjacentHTML('beforeend',`
+    <div class="admin-row">
+      <div class="user-avatar">${initial}</div>
+      <div class="admin-row-info"><strong>${email}</strong><span>Admin · Pendiente de confirmación</span></div>
+      <button class="btn-remove-admin" onclick="this.closest('.admin-row').remove()">✕</button>
+    </div>
+  `);
+  document.getElementById('new-admin-email').value = '';
+  showToast(`${email} agregado como admin ✓`,'success');
+}
+
+// ══ HELPERS ══
+function formatDate(dateStr){
+  if(!dateStr) return '—';
+  const d = new Date(dateStr+'T12:00:00');
+  return d.toLocaleDateString('es-GT',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function estadoBadge(estado){
+  const map = {
+    disponible:'<span class="badge badge-green">✓ Disponible</span>',
+    lleno:'<span class="badge badge-red">✕ Lleno</span>',
+    cancelado:'<span class="badge badge-yellow">⚠ Cancelado</span>',
+  };
+  return map[estado] || estado;
+}
+
+function estadoInscripcionBadge(estado){
+  const map = {
+    confirmada:'<span class="badge badge-green">✓ Confirmada</span>',
+    pendiente:'<span class="badge badge-yellow">⏳ Pendiente</span>',
+    cancelada:'<span class="badge badge-red">✕ Cancelada</span>',
+  };
+  return map[estado] || estado;
+}
+
+function estadoBanqueteBadge(estado){
+  const map = {
+    pendiente:'<span class="badge badge-yellow">⏳ Pendiente</span>',
+    confirmada:'<span class="badge badge-green">✓ Confirmada</span>',
+    rechazada:'<span class="badge badge-red">✕ Rechazada</span>',
+  };
+  return map[estado] || estado;
+}
+
+function handleModalBgClick(e, modalId){
+  if(e.target === document.getElementById(modalId)){
+    if(modalId==='curso-modal') closeCursoModal();
+    if(modalId==='pastel-modal') closePastelModal();
+    if(modalId==='inscripcion-modal') closeInscripcionModal();
+  }
+}
+
+let toastTimer;
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = (type==='success'?'✓ ':type==='error'?'✕ ':'') + msg;
+  t.className = 'toast '+(type||'');
+  clearTimeout(toastTimer);
+  setTimeout(()=>t.classList.add('show'),10);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Escape to close modals
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeCursoModal(); closePastelModal(); closeInscripcionModal(); closeConfirm();
+  }
+});
+</script>
+<script src="../js/admin.js"></script>
+</body>
+</html>
