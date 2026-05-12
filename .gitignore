@@ -2,9 +2,11 @@
 venv/
 .venv/
 env/
-
+.env
 # Variables de entorno (credenciales)
 backend/.env
+backend/database/conexion.py
+backend/config.py
 
 # Python cache
 __pycache__/
