@@ -66,6 +66,30 @@ def actualizar_estado(id_inscripcion: int, data: dict):
     return {"message": "Inscripción actualizada.", "inscripcion": i.to_dict()}, 200
 
 
+def inscripciones_por_usuario(id_usuario: int):
+    """Devuelve las inscripciones de un usuario específico con datos del curso."""
+    usuario = Usuario.query.get(id_usuario)
+    if not usuario:
+        return {"message": "Usuario no encontrado."}, 404
+
+    inscripciones = (
+        Inscripcion.query
+        .filter_by(id_usuario=id_usuario)
+        .order_by(Inscripcion.fecha_inscripcion.desc())
+        .all()
+    )
+    resultado = []
+    for i in inscripciones:
+        d = i.to_dict()
+        # Añadir campos del curso que necesita el frontend
+        if i.curso:
+            d["nombre_curso"] = i.curso.nombre_curso
+            d["imagen"] = i.curso.imagen
+            d["fecha_inicio"] = str(i.curso.fecha_inicio)
+        resultado.append(d)
+    return resultado, 200
+
+
 def cancelar_inscripcion(id_inscripcion: int):
     i = Inscripcion.query.get(id_inscripcion)
     if not i:

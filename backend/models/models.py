@@ -444,3 +444,18 @@ class SolicitudCurso(db.Model):
             "descripcion" : self.descripcion,
             "fecha"       : str(self.fecha),
         }
+
+
+# ─────────────────────────────────────────
+# CONFIGURACION DEL SISTEMA
+# Tabla clave-valor para ajustes globales.
+# Fila inicial: clave='whatsapp_numero', valor='50212345678'
+# ─────────────────────────────────────────
+class Configuracion(db.Model):
+    __tablename__ = "configuracion"
+
+    clave = db.Column(db.String(60), primary_key=True)
+    valor = db.Column(db.String(255), nullable=False)
+
+    def to_dict(self):
+        return {"clave": self.clave, "valor": self.valor}

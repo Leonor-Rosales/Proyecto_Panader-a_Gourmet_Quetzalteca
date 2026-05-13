@@ -345,6 +345,24 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .btn-add-cart:hover{background:var(--mid-pink);transform:translateY(-1px)}
 .carrito-overlay{position:fixed;inset:0;background:rgba(60,10,25,.35);z-index:390;opacity:0;visibility:hidden;transition:all .25s}
 .carrito-overlay.open{opacity:1;visibility:visible}
+/* ── MODAL DIRECCIÓN ── */
+.modal-dir-overlay{position:fixed;inset:0;background:rgba(60,10,25,.55);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s}
+.modal-dir-overlay.open{opacity:1;visibility:visible}
+.modal-dir-box{background:#fff;border-radius:16px;padding:32px 28px;width:100%;max-width:420px;box-shadow:0 16px 48px rgba(100,30,50,.25);position:relative}
+.modal-dir-box h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--dark-pink);margin-bottom:6px}
+.modal-dir-box p{font-size:.83rem;color:var(--text-light);margin-bottom:18px}
+.modal-dir-box .form-group{margin-bottom:14px}
+.modal-dir-box label{display:block;font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:5px}
+.modal-dir-box input,.modal-dir-box textarea{width:100%;padding:10px 13px;border:1.5px solid #e0cdd4;border-radius:8px;font-family:'Jost',sans-serif;font-size:.88rem;color:var(--text);background:#fdf6f8;box-sizing:border-box;transition:border .2s}
+.modal-dir-box input:focus,.modal-dir-box textarea:focus{outline:none;border-color:var(--dark-pink)}
+.modal-dir-box textarea{resize:vertical;min-height:70px}
+.modal-dir-sesion{background:#fdf0f4;border:1.5px solid #f5cdd8;border-radius:8px;padding:10px 13px;font-size:.82rem;color:var(--dark-pink);margin-bottom:14px;display:none}
+.modal-dir-sesion.visible{display:block}
+.modal-dir-actions{display:flex;gap:10px;margin-top:6px}
+.btn-dir-cancel{flex:1;background:#f3e8ec;color:var(--dark-pink);border:none;padding:11px;border-radius:8px;font-family:'Jost',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer}
+.btn-dir-confirm{flex:2;background:#25D366;color:#fff;border:none;padding:11px;border-radius:8px;font-family:'Jost',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-dir-confirm:disabled{background:#aaa;cursor:not-allowed}
+.modal-dir-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-light)}
 </style>
 </head>
 <body>
@@ -368,6 +386,31 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.523 5.845L.057 23.7a.5.5 0 00.614.634l5.988-1.57A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.952 9.952 0 01-5.065-1.38l-.364-.216-3.762.987.988-3.648-.237-.378A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Finalizar por WhatsApp
     </button>
+  </div>
+</div>
+
+<!-- ══ MODAL DIRECCIÓN DE ENTREGA ══ -->
+<div class="modal-dir-overlay" id="modalDirOverlay">
+  <div class="modal-dir-box">
+    <button class="modal-dir-close" onclick="cerrarModalDir()">×</button>
+    <h3>📍 Dirección de entrega</h3>
+    <p>Ingresa dónde quieres recibir tu pedido</p>
+    <div class="modal-dir-sesion" id="dirSesionInfo"></div>
+    <div class="form-group">
+      <label>Dirección completa *</label>
+      <input type="text" id="dirInput" placeholder="Ej: 4a calle 10-20, Zona 1, Xelajú">
+    </div>
+    <div class="form-group">
+      <label>Referencias (opcional)</label>
+      <textarea id="dirReferencia" placeholder="Ej: Frente al parque, casa azul con portón negro"></textarea>
+    </div>
+    <div class="modal-dir-actions">
+      <button class="btn-dir-cancel" onclick="cerrarModalDir()">Cancelar</button>
+      <button class="btn-dir-confirm" id="btnConfirmarDir" onclick="confirmarDireccion()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.523 5.845L.057 23.7a.5.5 0 00.614.634l5.988-1.57A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.952 9.952 0 01-5.065-1.38l-.364-.216-3.762.987.988-3.648-.237-.378A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Confirmar pedido
+      </button>
+    </div>
   </div>
 </div>
 
@@ -490,7 +533,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
     </div>
     <div class="banquetes-img"></div>
   </div>
-  <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div><div class="footer-phone"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg> +502 1234 5678</div></div><div class="footer-socials"><a class="social-icon" href="https://facebook.com/panaderiaGourmetQuetzalteca" target="_blank" title="Facebook" style="text-decoration:none;color:inherit">f</a><a class="social-icon" href="https://instagram.com/panaderiaGourmetQuetzalteca" target="_blank" title="Instagram" style="text-decoration:none;color:inherit">in</a><a class="social-icon" href="https://wa.me/50212345678" target="_blank" title="WhatsApp" style="text-decoration:none;color:inherit">💬</a></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
+  <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div><div class="footer-phone"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg> +502 1234 5678</div></div><div class="footer-socials"><a class="social-icon" href="https://facebook.com/panaderiaGourmetQuetzalteca" target="_blank" title="Facebook" style="text-decoration:none;color:inherit">f</a><a class="social-icon" href="https://instagram.com/panaderiaGourmetQuetzalteca" target="_blank" title="Instagram" style="text-decoration:none;color:inherit">in</a><a class="social-icon" href="#" onclick="window.open('https://wa.me/'+WA_NUMBER,'_blank');return false" title="WhatsApp" style="text-decoration:none;color:inherit">💬</a></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
 </div>
 
 <!-- ════ PASTELERÍA ════ -->
@@ -583,22 +626,25 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       <h2>¡Hablemos!</h2>
       <p>Nos encantaría escucharte. Ya sea para consultas sobre cursos, pedidos de pastelería o cotizaciones de banquetes.</p>
       <div class="contact-item"><div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div><div><h4>Correo</h4><p><a href="mailto:panaderiaGourmetQuetzalteca@gmail.com" style="color:var(--text);text-decoration:none">panaderiaGourmetQuetzalteca@gmail.com</a></p></div></div>
-      <div class="contact-item"><div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg></div><div><h4>Teléfono / WhatsApp</h4><p><a href="https://wa.me/50212345678" target="_blank" style="color:var(--text);text-decoration:none">+502 1234 5678</a></p></div></div>
+      <div class="contact-item"><div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg></div><div><h4>Teléfono / WhatsApp</h4><p><a href="#" onclick="window.open('https://wa.me/'+WA_NUMBER,'_blank');return false" style="color:var(--text);text-decoration:none" id="contacto-wa-link">+502 1234 5678</a></p></div></div>
       <div class="contact-item"><div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><h4>Horario de Atención</h4><p>Lunes – Sábado, 8:00 am – 6:00 pm</p></div></div>
       <div class="social-row">
         <a class="social-btn" href="https://facebook.com/panaderiaGourmetQuetzalteca" target="_blank" style="text-decoration:none">f Facebook</a>
         <a class="social-btn" href="https://instagram.com/panaderiaGourmetQuetzalteca" target="_blank" style="text-decoration:none">📷 Instagram</a>
-        <a class="social-btn" href="https://wa.me/50212345678" target="_blank" style="text-decoration:none">💬 WhatsApp</a>
+        <a class="social-btn" href="#" onclick="window.open('https://wa.me/'+WA_NUMBER,'_blank');return false" style="text-decoration:none">💬 WhatsApp</a>
       </div>
     </div>
     <div class="contacto-form-wrap">
       <h3>Envíanos un mensaje</h3>
-      <div class="form-group"><label>Nombre completo</label><input type="text" placeholder="Tu nombre"></div>
-      <div class="form-group"><label>Correo electrónico</label><input type="email" placeholder="correo@ejemplo.com"></div>
-      <div class="form-group"><label>Teléfono</label><input type="tel" placeholder="+502 ---- ----"></div>
-      <div class="form-group"><label>Asunto</label><select><option>Consulta sobre cursos</option><option>Pedido de pastelería</option><option>Cotización de banquetes</option><option>Otro</option></select></div>
-      <div class="form-group"><label>Mensaje</label><textarea placeholder="Escribe tu mensaje aquí..."></textarea></div>
-      <button class="btn-submit">Enviar Mensaje ›</button>
+      <div id="contacto-sesion-aviso" style="display:none;background:#fff8ec;border:1.5px solid #f5d99d;border-radius:8px;padding:9px 13px;font-size:.8rem;color:#7a4a00;margin-bottom:14px">
+        ⚠️ Debes <a href="#" onclick="openModal();return false" style="color:var(--dark-pink);font-weight:600">iniciar sesión</a> para enviar un mensaje.
+      </div>
+      <div class="form-group"><label>Nombre completo</label><input type="text" id="cont-nombre" placeholder="Tu nombre"></div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="cont-email" placeholder="correo@ejemplo.com"></div>
+      <div class="form-group"><label>Teléfono</label><input type="tel" id="cont-telefono" placeholder="+502 ---- ----"></div>
+      <div class="form-group"><label>Asunto</label><select id="cont-asunto"><option>Consulta sobre cursos</option><option>Pedido de pastelería</option><option>Cotización de banquetes</option><option>Otro</option></select></div>
+      <div class="form-group"><label>Mensaje</label><textarea id="cont-mensaje" placeholder="Escribe tu mensaje aquí..."></textarea></div>
+      <button class="btn-submit" onclick="enviarMensajeContacto()">Enviar Mensaje por WhatsApp ›</button>
     </div>
   </div>
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
@@ -781,20 +827,78 @@ async function handleRegister(){
 function handleGoogleLogin(){alert('Conecta aquí tu flujo de Google OAuth.');}
 
 async function handleInscripcion(){
-  const usuario=JSON.parse(sessionStorage.getItem('usuario_sesion')||'null');
-  if(!usuario){alert('Debes iniciar sesión para inscribirte en un curso.');openModal();return;}
-  if(!_cursoDetalleId){alert('No se pudo identificar el curso. Por favor intenta de nuevo.');return;}
-  try{
-    const res=await fetch('/api/inscripciones',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_usuario:usuario.id_usuario,id_curso:_cursoDetalleId})});
-    const data=await res.json();
-    if(res.ok)alert('✅ '+(data.message||'¡Inscripción realizada con éxito!'));
-    else alert('❌ '+(data.message||'No se pudo completar la inscripción.'));
-  }catch{alert('❌ Error de conexión. Verifica que el servidor esté corriendo.');}
+  const usuario = requireSesion('cursos');
+  if (!usuario) return;
+  if (!_cursoDetalleId) { alert('No se pudo identificar el curso. Intenta de nuevo.'); return; }
+
+  const btn = document.querySelector('.btn-inscribir-lg');
+  if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
+
+  try {
+    const res  = await fetch('/api/inscripciones', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ id_usuario: usuario.id_usuario, id_curso: _cursoDetalleId })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      // Mostrar aviso verde dentro de la vista de detalle, no alert()
+      const detalle = document.getElementById('page-curso-detalle') || document.body;
+      const aviso   = document.createElement('div');
+      aviso.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a7a3c;color:#fff;padding:12px 28px;border-radius:10px;font-size:.9rem;font-weight:600;z-index:999;box-shadow:0 6px 20px rgba(0,0,0,.2)';
+      aviso.textContent   = '✅ ' + (data.message || '¡Inscripción realizada con éxito!');
+      document.body.appendChild(aviso);
+      setTimeout(() => aviso.remove(), 4000);
+    } else {
+      alert('❌ ' + (data.message || 'No se pudo completar la inscripción.'));
+    }
+  } catch {
+    alert('❌ Error de conexión. Verifica que el servidor esté corriendo.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Inscribirse Ahora ›'; }
+  }
 }
 
 // ── CARRITO ──
 var carrito = [];
-const WA_NUMBER = '50212345678'; // Número WhatsApp del negocio
+// ── Verificar sesión activa, abre modal si no hay ──
+function requireSesion(accion) {
+  const u = JSON.parse(sessionStorage.getItem('usuario_sesion') || 'null');
+  if (!u) {
+    const nombres = {
+      banquetes : 'solicitar un banquete',
+      contacto  : 'enviar un mensaje',
+      cursos    : 'inscribirte a un curso',
+    };
+    if (typeof openModal === 'function') openModal();
+    // Mostrar aviso encima del modal
+    const box = document.getElementById('loginModal');
+    if (box) {
+      const aviso = box.querySelector('.modal-box');
+      const prev  = aviso?.querySelector('.sesion-requerida-aviso');
+      if (aviso && !prev) {
+        const div = document.createElement('div');
+        div.className = 'sesion-requerida-aviso';
+        div.style.cssText = 'background:#fff8ec;border:1.5px solid #f5d99d;border-radius:8px;padding:9px 13px;font-size:.8rem;color:#7a4a00;margin-bottom:14px';
+        div.innerHTML = `⚠️ Debes iniciar sesión para ${nombres[accion] || 'continuar'}.`;
+        aviso.insertBefore(div, aviso.firstChild);
+        setTimeout(() => div.remove(), 8000);
+      }
+    }
+    return false;
+  }
+  return u;
+}
+
+// Número WA cargado desde la BD al iniciar
+let WA_NUMBER = '50212345678';
+async function cargarWaNumber() {
+  try {
+    const r = await fetch('/api/config/whatsapp_numero');
+    if (r.ok) { const d = await r.json(); WA_NUMBER = d.valor; }
+  } catch(e) { /* usa el default */ }
+}
+cargarWaNumber();
 
 function agregarAlCarrito(nombre, precio, id_producto) {
   const idx = carrito.findIndex(x => x.nombre === nombre);
@@ -852,76 +956,177 @@ function cerrarCarrito() {
   document.body.style.overflow = '';
 }
 
-async function finalizarPedidoWA() {
+// ── MODAL DIRECCIÓN ──────────────────────────────────────
+function finalizarPedidoWA() {
   if (carrito.length === 0) { alert('Tu carrito está vacío.'); return; }
 
+  // Verificar sesión — obligatorio para hacer pedido
   const usuario = JSON.parse(sessionStorage.getItem('usuario_sesion') || 'null');
-  if (!usuario) { alert('Debes iniciar sesión para finalizar tu pedido.'); openModal(); return; }
+  if (!usuario) {
+    openModal();
+    const box = document.getElementById('loginModal');
+    if (box) {
+      const aviso = box.querySelector('.modal-box');
+      const prev  = aviso?.querySelector('.sesion-requerida-aviso');
+      if (aviso && !prev) {
+        const div = document.createElement('div');
+        div.className = 'sesion-requerida-aviso';
+        div.style.cssText = 'background:#fff8ec;border:1.5px solid #f5d99d;border-radius:8px;padding:9px 13px;font-size:.8rem;color:#7a4a00;margin-bottom:14px';
+        div.innerHTML = '⚠️ Debes iniciar sesión para realizar un pedido.';
+        aviso.insertBefore(div, aviso.firstChild);
+        setTimeout(() => div.remove(), 8000);
+      }
+    }
+    return;
+  }
 
-  const ubicacion = prompt('¿Cuál es tu dirección de entrega?\n(Ej: Zona 1, 4a calle 10-20, Xela)');
-  if (!ubicacion || !ubicacion.trim()) return;
+  // Mostrar info de sesión en el modal de dirección
+  const infoEl = document.getElementById('dirSesionInfo');
+  infoEl.textContent = `✅ Sesión activa: ${usuario.nombre_completo}`;
+  infoEl.className = 'modal-dir-sesion visible';
+  infoEl.style.color = '#1a7a3c';
+  infoEl.style.background = '#edfbf3';
+  infoEl.style.borderColor = '#9de0bb';
 
-  // Abrir ventana ANTES del await para evitar bloqueo del navegador
-  const waWindow = window.open('', '_blank');
+  // Limpiar campos y abrir modal
+  document.getElementById('dirInput').value = '';
+  document.getElementById('dirReferencia').value = '';
+  document.getElementById('modalDirOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('dirInput').focus(), 150);
+}
 
-  const btn = document.querySelector('.btn-whatsapp');
-  if (btn) { btn.disabled = true; btn.textContent = 'Guardando pedido…'; }
+function cerrarModalDir() {
+  document.getElementById('modalDirOverlay').classList.remove('open');
+}
 
-  const body = {
-    id_usuario       : usuario.id_usuario,
-    ubicacion_entrega: ubicacion.trim(),
-    items: carrito.map(x => ({ id_producto: x.id_producto, cantidad: x.cantidad, nombre: x.nombre }))
-  };
+async function confirmarDireccion() {
+  const dirInput    = document.getElementById('dirInput');
+  const referencia  = document.getElementById('dirReferencia').value.trim();
+  const direccion   = dirInput.value.trim();
 
+  if (!direccion) {
+    dirInput.style.borderColor = 'var(--dark-pink)';
+    dirInput.focus();
+    return;
+  }
+  dirInput.style.borderColor = '';
+
+  const ubicacion = referencia ? `${direccion} — Ref: ${referencia}` : direccion;
+  const usuario   = JSON.parse(sessionStorage.getItem('usuario_sesion') || 'null');
+
+  const btn = document.getElementById('btnConfirmarDir');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  cerrarModalDir();
+
+  let waUrl = null;
+
+  // Con sesión: guardar en BD primero
   try {
     const res  = await fetch('/api/pedidos', {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify(body)
+      body   : JSON.stringify({
+        id_usuario       : usuario.id_usuario,
+        ubicacion_entrega: ubicacion,
+        items: carrito.map(x => ({ id_producto: x.id_producto, cantidad: x.cantidad, nombre: x.nombre }))
+      })
     });
     const data = await res.json();
-
-    if (res.ok) {
-      carrito = [];
-      actualizarCarritoUI();
-      cerrarCarrito();
-      // Redirigir la ventana ya abierta a WhatsApp
-      waWindow.location.href = data.whatsapp_url;
-    } else {
-      waWindow.close();
-      alert('❌ ' + (data.message || 'No se pudo guardar el pedido.'));
-    }
-  } catch {
-    waWindow.close();
-    alert('❌ Error de conexión. Verifica que el servidor esté corriendo.');
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '💬 Finalizar por WhatsApp'; }
+    console.log('[Pedido] status:', res.status, data);
+    waUrl = res.ok ? data.whatsapp_url : _buildWaMsg(usuario.nombre_completo, ubicacion);
+  } catch (err) {
+    console.error('[Pedido] error:', err);
+    waUrl = _buildWaMsg(usuario.nombre_completo, ubicacion);
   }
+
+  carrito = [];
+  actualizarCarritoUI();
+  cerrarCarrito();
+  btn.disabled = false;
+  btn.innerHTML = '✅ Confirmar pedido';
+
+  // Abrir WhatsApp — aquí ya no hay await pendiente, window.open funciona
+  window.open(waUrl, '_blank');
+}
+
+function _buildWaMsg(nombre, ubicacion) {
+  const total = carrito.reduce((s, x) => s + x.precio * x.cantidad, 0);
+  let msg = `*Pedido - Panaderia Gourmet Quetzalteca*\nCliente: ${nombre}\n\nDetalle:\n`;
+  carrito.forEach(x => { msg += `  - ${x.nombre} x${x.cantidad} = Q.${(x.precio * x.cantidad).toFixed(2)}\n`; });
+  msg += `\nTotal: Q.${total.toFixed(2)}\nDireccion: ${ubicacion}\n\nPor favor confirmar disponibilidad y forma de pago.`;
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
 
 // ── CATERING / BANQUETES → WHATSAPP ──
 function enviarCotizacionWA() {
-  const nombre = (document.getElementById('banq-nombre')?.value || '').trim();
+  // ── Requiere sesión ──
+  const usuario = requireSesion('banquetes');
+  if (!usuario) return;
+
+  const nombre   = (document.getElementById('banq-nombre')?.value   || usuario.nombre_completo || '').trim();
   const telefono = (document.getElementById('banq-telefono')?.value || '').trim();
-  const email = (document.getElementById('banq-email')?.value || '').trim();
-  const tipo = (document.getElementById('banq-tipo')?.value || '').trim();
+  const email    = (document.getElementById('banq-email')?.value    || usuario.correo || '').trim();
+  const tipo     = (document.getElementById('banq-tipo')?.value     || '').trim();
   const personas = (document.getElementById('banq-personas')?.value || '').trim();
-  const fecha = (document.getElementById('banq-fecha')?.value || '').trim();
-  const mensaje = (document.getElementById('banq-mensaje')?.value || '').trim();
-  if (!nombre || !telefono || !tipo || tipo === 'Selecciona...') {
-    alert('Por favor completa al menos: Nombre, Teléfono y Tipo de evento.');
+  const fecha    = (document.getElementById('banq-fecha')?.value    || '').trim();
+  const mensaje  = (document.getElementById('banq-mensaje')?.value  || '').trim();
+
+  if (!tipo || tipo === 'Selecciona...') {
+    alert('Por favor selecciona el tipo de evento.');
     return;
   }
-  let msg = '🍽️ *Solicitud de Catering / Banquete*\n';
-  msg += `*Panadería Gourmet Quetzalteca*\n\n`;
-  msg += `👤 *Nombre:* ${nombre}\n`;
-  if (telefono) msg += `📱 *Teléfono:* ${telefono}\n`;
-  if (email) msg += `📧 *Correo:* ${email}\n`;
-  msg += `🎉 *Tipo de evento:* ${tipo}\n`;
-  if (personas) msg += `👥 *Personas:* ${personas}\n`;
-  if (fecha) msg += `📅 *Fecha:* ${fecha}\n`;
-  if (mensaje) msg += `📝 *Detalles:* ${mensaje}\n`;
-  msg += '\nQuedo en espera de su cotización. ¡Muchas gracias!';
+
+  let msg = '*Solicitud de Catering / Banquete*\n';
+  msg += 'Panaderia Gourmet Quetzalteca\n\n';
+  msg += `Nombre: ${nombre}\n`;
+  if (telefono) msg += `Telefono: ${telefono}\n`;
+  if (email)    msg += `Correo: ${email}\n`;
+  msg += `Tipo de evento: ${tipo}\n`;
+  if (personas) msg += `Personas: ${personas}\n`;
+  if (fecha)    msg += `Fecha: ${fecha}\n`;
+  if (mensaje)  msg += `Detalles: ${mensaje}\n`;
+  msg += '\nQuedo en espera de su cotizacion. Muchas gracias!';
+
+  // Vaciar carrito al enviar banquete
+  carrito = [];
+  actualizarCarritoUI();
+  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── CONTACTO → WhatsApp ───────────────────────────────────
+function enviarMensajeContacto() {
+  const usuario = requireSesion('contacto');
+  if (!usuario) {
+    document.getElementById('contacto-sesion-aviso').style.display = 'block';
+    return;
+  }
+  document.getElementById('contacto-sesion-aviso').style.display = 'none';
+
+  const nombre   = (document.getElementById('cont-nombre')?.value   || usuario.nombre_completo || '').trim();
+  const email    = (document.getElementById('cont-email')?.value    || usuario.correo || '').trim();
+  const telefono = (document.getElementById('cont-telefono')?.value || '').trim();
+  const asunto   = (document.getElementById('cont-asunto')?.value   || '').trim();
+  const mensaje  = (document.getElementById('cont-mensaje')?.value  || '').trim();
+
+  if (!mensaje) {
+    document.getElementById('cont-mensaje').focus();
+    return;
+  }
+
+  let msg = '*Mensaje de Contacto*\n';
+  msg += 'Panaderia Gourmet Quetzalteca\n\n';
+  msg += `Nombre: ${nombre}\n`;
+  if (email)    msg += `Correo: ${email}\n`;
+  if (telefono) msg += `Telefono: ${telefono}\n`;
+  msg += `Asunto: ${asunto}\n`;
+  msg += `Mensaje: ${mensaje}\n`;
+  msg += '\nMuchas gracias!';
+
+  // Vaciar carrito al contactar
+  carrito = [];
+  actualizarCarritoUI();
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 

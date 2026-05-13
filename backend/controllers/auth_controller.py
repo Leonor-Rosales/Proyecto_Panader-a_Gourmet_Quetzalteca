@@ -44,6 +44,44 @@ def registrar_usuario(data: dict):
     return {"message": "Cuenta creada correctamente.", "usuario": nuevo.to_dict()}, 201
 
 
+def actualizar_usuario(id_usuario: int, data: dict):
+    """
+    Actualiza el perfil de un usuario.
+    Recibe: { nombre_completo, telefono, fecha_nacimiento, password (opcional) }
+    """
+    usuario = Usuario.query.get(id_usuario)
+    if not usuario:
+        return {"message": "Usuario no encontrado."}, 404
+
+    nombre = (data.get("nombre_completo") or "").strip()
+    if not nombre:
+        return {"message": "El nombre no puede estar vacío."}, 400
+
+    usuario.nombre_completo = nombre
+
+    fecha = data.get("fecha_nacimiento")
+    if fecha:
+        try:
+            from datetime import date as date_type
+            usuario.fecha_nacimiento = date_type.fromisoformat(fecha)
+        except ValueError:
+            return {"message": "Formato de fecha inválido (YYYY-MM-DD)."}, 400
+
+    password = data.get("password")
+    if password:
+        if len(password) < 8:
+            return {"message": "La contraseña debe tener al menos 8 caracteres."}, 400
+        usuario.password_hash = generate_password_hash(password)
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return {"message": f"Error al guardar: {str(e)}"}, 500
+
+    return {"message": "Perfil actualizado correctamente.", "usuario": usuario.to_dict()}, 200
+
+
 def login_usuario(data: dict):
     """
     Recibe: { email, password }
