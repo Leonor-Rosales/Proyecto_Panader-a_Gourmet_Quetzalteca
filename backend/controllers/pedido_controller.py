@@ -23,9 +23,7 @@ from datetime import date, timedelta
 
 from database.conexion import db
 from models.models import Pedido, DetallePedido, Producto, Usuario
-
-# ── Número WhatsApp del negocio (sin + ni espacios) ──────────────────────────
-WA_NUMBER = "50249597750"
+from controllers.config_controller import get_wa_number
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -155,12 +153,7 @@ def crear_pedido(data: dict):
         return {"message": f"Error al guardar el pedido: {str(e)}"}, 500
 
     # ── 6. Construir mensaje de WhatsApp ─────────────────────────────────────
-    telefono = ""
-    try:
-        if usuario.estudiante:
-            telefono = getattr(usuario.estudiante, "telefono", "") or ""
-    except Exception:
-        pass
+    telefono = ""  # Usuario base no tiene telefono; se omite en el mensaje
 
     wa_url = _construir_url_whatsapp(
         no_pedido     = nuevo_pedido.no_pedido,
@@ -322,4 +315,4 @@ def _construir_url_whatsapp(
     ]
 
     mensaje = "\n".join(lineas)
-    return f"https://wa.me/{WA_NUMBER}?text={quote(mensaje)}"
+    return f"https://wa.me/{get_wa_number()}?text={quote(mensaje)}"

@@ -42,6 +42,17 @@ def create_app():
     # ── Base de datos ──────────────────────────────────────
     init_db(app)
 
+    # ── Crear tabla configuracion e insertar valores por defecto ──
+    with app.app_context():
+        try:
+            from models.models import Configuracion
+            from database.conexion import db as _db
+            _db.create_all()                        # crea solo tablas nuevas
+            from controllers.config_controller import inicializar_config
+            inicializar_config()                    # inserta defaults si no existen
+        except Exception as _e:
+            print(f"[config init] {_e}")
+
     # ── Blueprints ─────────────────────────────────────────
     app.register_blueprint(api, url_prefix="/api")
 
