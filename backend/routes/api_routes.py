@@ -4,8 +4,12 @@ Define todos los endpoints REST del sistema.
 Se registra como Blueprint en app.py con prefijo /api
 """
 
-from flask import Blueprint, request, jsonify
-from controllers.auth_controller       import registrar_usuario, login_usuario, actualizar_usuario
+from flask import Blueprint, request, jsonify, redirect
+from controllers.auth_controller import (registrar_usuario, login_usuario,
+                                         actualizar_usuario, confirm_email,
+                                         google_login, google_userinfo,
+                                         invitar_docente, accept_docente,
+                                         verificar_correo_usuario)
 from controllers.curso_controller      import (obtener_cursos, obtener_curso,
                                                crear_curso, actualizar_curso,
                                                eliminar_curso)
@@ -48,6 +52,57 @@ def login():
 @api.put("/auth/usuario/<int:id_usuario>")
 def put_usuario(id_usuario):
     return resp(*actualizar_usuario(id_usuario, request.get_json(force=True) or {}))
+
+
+@api.get("/auth/confirm/<string:token>")
+def confirm(token):
+    """Confirma el correo y crea la cuenta. Redirige al frontend con resultado."""
+    from flask import redirect
+    result, code = confirm_email(token)
+    if code == 201:
+        return redirect("/?verified=1", code=302)
+    else:
+        import urllib.parse
+        msg = urllib.parse.quote(result.get("message", "Error."))
+        return redirect(f"/?verified=0&msg={msg}", code=302)
+
+
+@api.post("/auth/google")
+def google():
+    """Recibe el id_token de Google Sign-In (One Tap) y devuelve la sesión."""
+    return resp(*google_login(request.get_json(force=True) or {}))
+
+
+@api.post("/auth/google-userinfo")
+def google_userinfo_route():
+    """Recibe email/name del flujo popup OAuth2 y devuelve la sesión."""
+    return resp(*google_userinfo(request.get_json(force=True) or {}))
+
+
+@api.post("/auth/check-email")
+def check_email():
+    """Verifica si un correo existe como usuario registrado."""
+    return resp(*verificar_correo_usuario(request.get_json(force=True) or {}))
+
+
+@api.post("/auth/invitar-docente")
+def post_invitar_docente():
+    """Verifica que exista el correo y envía invitación de rol docente."""
+    return resp(*invitar_docente(request.get_json(force=True) or {}))
+
+
+@api.get("/auth/accept-docente/<string:token>")
+def get_accept_docente(token):
+    """Acepta la invitación de docente y cambia el rol. Redirige al frontend."""
+    result, code = accept_docente(token)
+    import urllib.parse
+    if code == 200:
+        return redirect("/?docente=1", code=302)
+    elif result.get("needs_account"):
+        return redirect("/?docente=needs_account", code=302)
+    else:
+        msg = urllib.parse.quote(result.get("message", "Error."))
+        return redirect(f"/?docente=error&msg={msg}", code=302)
 
 
 # ═══════════════════════════════════════

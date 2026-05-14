@@ -11,11 +11,95 @@ CAMBIOS REALIZADOS:
 """
 
 import os
+import threading
 from flask import Flask, send_from_directory, request, jsonify, abort
 from flask_cors import CORS
 from config import Config
 from database.conexion import init_db, db
 from routes.api_routes import api
+
+
+def _start_course_reminder_scheduler(app):
+    """
+    Hilo de fondo que cada hora revisa si hay cursos que empiezan en ~24h
+    y, si la configuración notif_recordatorio24h=1, manda correos a los inscritos.
+    """
+    import time, smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from datetime import datetime, timedelta, date
+
+    def _send(to_email, nombre_alumno, nombre_curso, fecha_inicio):
+        smtp_host = os.getenv("MAIL_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("MAIL_PORT", 587))
+        smtp_user = os.getenv("MAIL_USER", "")
+        smtp_pass = os.getenv("MAIL_PASSWORD", "")
+        if not smtp_user or not smtp_pass:
+            print(f"[REMINDER] Recordatorio para {to_email} - {nombre_curso} el {fecha_inicio}")
+            return
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Recordatorio: Tu curso '{nombre_curso}' empieza mañana 🥐"
+        msg["From"]    = f"Panadería Gourmet Quetzalteca <{smtp_user}>"
+        msg["To"]      = to_email
+        html = f"""
+        <html><body style="font-family:'Segoe UI',sans-serif;background:#fdf6f8;margin:0;padding:0">
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;
+                        box-shadow:0 4px 24px rgba(100,30,50,.12);overflow:hidden">
+            <tr><td style="background:#7a1f3d;padding:24px 32px;text-align:center">
+              <h1 style="color:#fff;font-size:1.3rem;margin:0;font-style:italic">🥐 Panadería Gourmet Quetzalteca</h1>
+            </td></tr>
+            <tr><td style="padding:32px">
+              <h2 style="color:#7a1f3d;margin-top:0">¡Hola, {nombre_alumno}!</h2>
+              <p style="color:#555;line-height:1.6">
+                Este es un recordatorio de que tu curso <strong>"{nombre_curso}"</strong>
+                comienza <strong>mañana {fecha_inicio}</strong>.
+              </p>
+              <p style="color:#555;line-height:1.6">¡Prepárate y mucho éxito! 🎉</p>
+            </td></tr>
+            <tr><td style="background:#fdf0f4;padding:14px 32px;text-align:center">
+              <p style="color:#bbb;font-size:.75rem;margin:0">© 2025 Panadería Gourmet Quetzalteca · Guatemala</p>
+            </td></tr>
+          </table>
+        </body></html>"""
+        msg.attach(MIMEText(html, "html"))
+        try:
+            with smtplib.SMTP(smtp_host, smtp_port) as s:
+                s.ehlo(); s.starttls(); s.login(smtp_user, smtp_pass)
+                s.sendmail(smtp_user, to_email, msg.as_string())
+        except Exception as e:
+            print(f"[REMINDER ERROR] {e}")
+
+    # IDs ya notificados para no mandar dos veces (se reinicia al reiniciar el server)
+    _ya_notificados = set()
+
+    def _loop():
+        while True:
+            try:
+                with app.app_context():
+                    from models.models import Configuracion, Curso, Inscripcion
+                    cfg = Configuracion.query.get("notif_recordatorio24h")
+                    if cfg and cfg.valor == "1":
+                        manana = date.today() + timedelta(days=1)
+                        cursos = Curso.query.filter_by(fecha_inicio=manana, is_active=True).all()
+                        for curso in cursos:
+                            for insc in curso.inscripciones:
+                                key = f"{curso.id_curso}_{insc.id_usuario}"
+                                if key not in _ya_notificados and insc.usuario:
+                                    _send(
+                                        insc.usuario.email,
+                                        insc.usuario.nombre_completo,
+                                        curso.nombre_curso,
+                                        str(manana),
+                                    )
+                                    _ya_notificados.add(key)
+            except Exception as e:
+                print(f"[SCHEDULER ERROR] {e}")
+            time.sleep(3600)  # revisar cada hora
+
+    t = threading.Thread(target=_loop, daemon=True)
+    t.start()
+
 
 
 def create_app():
@@ -55,6 +139,9 @@ def create_app():
 
     # ── Blueprints ─────────────────────────────────────────
     app.register_blueprint(api, url_prefix="/api")
+
+    # ── Scheduler: recordatorio 24h antes de cada curso ──────
+    _start_course_reminder_scheduler(app)
 
     # ── Ruta pública: página principal ────────────────────
     @app.route("/")

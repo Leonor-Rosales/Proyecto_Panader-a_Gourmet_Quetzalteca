@@ -15,9 +15,14 @@ from models.models import Configuracion
 
 # Valores por defecto que se crean en /api/config/init
 DEFAULTS = {
-    "whatsapp_numero" : "50212345678",
-    "negocio_nombre"  : "Panadería Gourmet Quetzalteca",
-    "negocio_email"   : "panaderiaGourmetQuetzalteca@gmail.com",
+    "whatsapp_numero"      : "50212345678",
+    "negocio_nombre"       : "Panadería Gourmet Quetzalteca",
+    "negocio_email"        : "panaderiaGourmetQuetzalteca@gmail.com",
+    # Notificaciones (1=activo, 0=inactivo)
+    "notif_inscripcion"    : "1",
+    "notif_banquete"       : "1",
+    "notif_recordatorio24h": "0",
+    "notif_reporte_semanal": "1",
 }
 
 

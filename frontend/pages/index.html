@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panadería Gourmet Quetzalteca</title>
+<!-- Google Sign-In SDK -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -64,7 +66,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(60,20,35,.55);backdrop-filter:blur(3px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s ease}
 .modal-overlay.open{opacity:1;visibility:visible}
-.modal-box{background:#fff;border-radius:16px;padding:40px 40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(100,30,50,.25);position:relative;transform:translateY(20px) scale(.97);transition:transform .25s ease}
+.modal-box{background:#fff;border-radius:16px;padding:44px 48px 40px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(100,30,50,.25);position:relative;transform:translateY(20px) scale(.97);transition:transform .25s ease}
 .modal-overlay.open .modal-box{transform:translateY(0) scale(1)}
 .modal-close{position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;font-size:1.4rem;color:var(--text-light);line-height:1;transition:color .15s}
 .modal-close:hover{color:var(--dark-pink)}
@@ -84,6 +86,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .modal-forgot{text-align:right;margin-top:-8px;margin-bottom:14px}
 .modal-forgot a{font-size:.72rem;color:var(--mid-pink);cursor:pointer;text-decoration:none}
 .modal-divider{display:flex;align-items:center;gap:10px;margin:16px 0;font-size:.72rem;color:var(--text-light)}
+.btn-google-login{background:#fff!important;color:#3c4043!important;border:1.5px solid #dadce0!important;margin-top:0!important;font-weight:500!important;box-shadow:0 1px 3px rgba(0,0,0,.08)!important}.btn-google-login:hover{background:#f8f9fa!important;box-shadow:0 2px 8px rgba(0,0,0,.14)!important;transform:translateY(-1px)!important}
 .modal-divider::before,.modal-divider::after{content:'';flex:1;height:1px;background:#e8d0d8}
 .auth-message{font-size:.78rem;text-align:center;padding:8px 12px;border-radius:6px;margin-bottom:12px;display:none}
 .auth-message.error{background:#fdeaea;color:#b03030;border:1px solid #f5c0c0;display:block}
@@ -415,7 +418,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 </div>
 
 <!-- ══ LOGIN MODAL ══ -->
-<div class="modal-overlay" id="loginModal" onclick="handleOverlayClick(event)">
+<div class="modal-overlay" id="loginModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">×</button>
     <h2>Bienvenido</h2>
@@ -431,21 +434,55 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       <div class="modal-forgot"><a href="#">¿Olvidaste tu contraseña?</a></div>
       <button class="btn-submit-modal" onclick="handleLogin()">Iniciar Sesión ›</button>
       <div class="modal-divider">o continúa con</div>
-      <button class="btn-submit-modal" style="background:#fff;color:var(--text);border:1.5px solid #e8d0d8;margin-top:0" onclick="handleGoogleLogin()">
-        <span style="display:flex;align-items:center;justify-content:center;gap:8px">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg>
+      <button class="btn-submit-modal btn-google-login" onclick="handleGoogleLogin()" id="googleSignInBtn" type="button">
+        <span style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <!-- Logo oficial Google 2023 (multicolor) -->
+          <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
           Continuar con Google
         </span>
       </button>
     </div>
     <div class="modal-form" id="tab-register">
-      <div id="register-message" class="auth-message"></div>
-      <div class="form-group"><label>Nombre completo</label><input type="text" id="register-name" placeholder="Tu nombre"></div>
-      <div class="form-group"><label>Correo electrónico</label><input type="email" id="register-email" placeholder="correo@ejemplo.com"></div>
-      <div class="form-group"><label>Teléfono</label><input type="tel" id="register-telefono" placeholder="+502 ---- ----"></div>
-      <div class="form-group"><label>Contraseña</label><input type="password" id="register-password" placeholder="Mínimo 8 caracteres"></div>
-      <div class="form-group"><label>Confirmar contraseña</label><input type="password" id="register-confirm" placeholder="Repite tu contraseña"></div>
-      <button class="btn-submit-modal" onclick="handleRegister()">Crear Cuenta ›</button>
+      <!-- Formulario de registro -->
+      <div id="register-form-content">
+        <div id="register-message" class="auth-message"></div>
+        <div class="form-group"><label>Nombre completo</label><input type="text" id="register-name" placeholder="Tu nombre"></div>
+        <div class="form-group"><label>Correo electrónico</label><input type="email" id="register-email" placeholder="correo@ejemplo.com"></div>
+        <div class="form-group"><label>Teléfono</label><input type="tel" id="register-telefono" placeholder="+502 ---- ----"></div>
+        <div class="form-group"><label>Contraseña</label><input type="password" id="register-password" placeholder="Mínimo 8 caracteres"></div>
+        <div class="form-group"><label>Confirmar contraseña</label><input type="password" id="register-confirm" placeholder="Repite tu contraseña"></div>
+        <button class="btn-submit-modal" id="btn-crear-cuenta" onclick="handleRegister()">Crear Cuenta ›</button>
+      </div>
+      <!-- Panel de verificación pendiente (se muestra después de enviar) -->
+      <div id="register-verify-panel" style="display:none;text-align:center;padding:4px 0">
+        <div style="font-size:3rem;margin-bottom:14px">📧</div>
+        <h3 style="color:var(--dark-pink);font-family:'Cormorant Garamond',serif;font-style:italic;margin:0 0 10px;font-size:1.3rem">
+          ¡Un paso más!
+        </h3>
+        <!-- Aviso amarillo prominente -->
+        <div style="background:#fff8e1;border:1.5px solid #f9c02a;border-radius:8px;padding:12px 14px;margin-bottom:14px;text-align:left">
+          <p style="margin:0;font-size:.84rem;color:#7a5800;font-weight:600;line-height:1.5">
+            ⚠️ Tu cuenta <strong>aún no está creada</strong>.
+          </p>
+          <p style="margin:6px 0 0;font-size:.82rem;color:#7a5800;line-height:1.5">
+            Para activarla debes confirmar tu correo haciendo clic en el enlace que te enviamos.
+          </p>
+        </div>
+        <p style="font-size:.84rem;color:#555;line-height:1.6;margin-bottom:6px" id="verify-email-msg">
+          Revisa tu bandeja de entrada y haz clic en <strong>"Confirmar mi cuenta"</strong>.
+        </p>
+        <p style="font-size:.76rem;color:#aaa;margin-bottom:18px">
+          ¿No lo ves? Revisa la carpeta de <strong>spam</strong> o correo no deseado.
+        </p>
+        <button class="btn-submit-modal" style="background:transparent;color:var(--dark-pink);border:1.5px solid var(--dark-pink);font-size:.8rem;padding:9px" onclick="mostrarFormRegistro()">
+          ← Usar otro correo
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -816,15 +853,147 @@ async function handleRegister(){
   if(!name||!email||!pass||!conf){showMsg('register-message','Por favor completa todos los campos.','error');return;}
   if(pass.length<8){showMsg('register-message','La contraseña debe tener al menos 8 caracteres.','error');return;}
   if(pass!==conf){showMsg('register-message','Las contraseñas no coinciden.','error');return;}
-  showMsg('register-message','Creando tu cuenta…','loading');
+  const btn=document.getElementById('btn-crear-cuenta');
+  if(btn){btn.disabled=true;btn.textContent='Enviando…';}
+  showMsg('register-message','Verificando correo…','loading');
   try{
     const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,telefono,password:pass})});
     const data=await res.json();
-    if(res.ok){showMsg('register-message','¡Cuenta creada! Ahora puedes iniciar sesión.','success');setTimeout(()=>{switchTab('login');clearMsg('register-message');},1500);}
-    else showMsg('register-message',data.message||'No se pudo crear la cuenta.','error');
-  }catch{showMsg('register-message','Error de conexión. Intenta de nuevo.','error');}
+    if(res.ok){
+      // Mostrar panel de verificación pendiente
+      document.getElementById('register-form-content').style.display='none';
+      const panel=document.getElementById('register-verify-panel');
+      const msg=document.getElementById('verify-email-msg');
+      if(msg) msg.textContent=data.message||`Te enviamos un enlace a ${email}. Haz clic en él para activar tu cuenta.`;
+      panel.style.display='block';
+    } else {
+      if(btn){btn.disabled=false;btn.textContent='Crear Cuenta ›';}
+      showMsg('register-message',data.message||'No se pudo enviar el correo.','error');
+    }
+  }catch{
+    if(btn){btn.disabled=false;btn.textContent='Crear Cuenta ›';}
+    showMsg('register-message','Error de conexión. Intenta de nuevo.','error');
+  }
 }
-function handleGoogleLogin(){alert('Conecta aquí tu flujo de Google OAuth.');}
+
+function mostrarFormRegistro(){
+  document.getElementById('register-form-content').style.display='block';
+  document.getElementById('register-verify-panel').style.display='none';
+  const btn=document.getElementById('btn-crear-cuenta');
+  if(btn){btn.disabled=false;btn.textContent='Crear Cuenta ›';}
+  clearMsg('register-message');
+}
+
+// ── Google OAuth con Google Sign-In (GSI) ──
+// Usa popup OAuth2 — no necesita redirect_uri registrada aparte
+const GOOGLE_CLIENT_ID = '576804066356-r7ldhe89ibl4g3qu5g1npt84mn57dcgl.apps.googleusercontent.com';
+
+// Inicializar GSI una sola vez cuando cargue la página
+window.addEventListener('load', function(){
+  if(typeof google === 'undefined' || !google.accounts) return;
+  google.accounts.id.initialize({
+    client_id  : GOOGLE_CLIENT_ID,
+    callback   : _onGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+  });
+});
+
+function handleGoogleLogin(){
+  if(typeof google === 'undefined' || !google.accounts){
+    showMsg('login-message','Google Sign-In no está disponible. Verifica tu conexión.','error');
+    return;
+  }
+  // Usar popup OAuth2 — este flujo NO necesita redirect_uri
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope    : 'openid email profile',
+    callback : async (tokenResponse) => {
+      if(tokenResponse.error){
+        showMsg('login-message','Cancelado o error con Google.','error');
+        return;
+      }
+      // Obtener id_token usando el access_token
+      try{
+        const infoRes = await fetch(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+          { headers: { Authorization: 'Bearer ' + tokenResponse.access_token } }
+        );
+        const info = await infoRes.json();
+        // Mandar al backend directamente con los datos del usuario
+        const res = await fetch('/api/auth/google-userinfo', {
+          method : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body   : JSON.stringify({
+            email: info.email,
+            name : info.name,
+            sub  : info.sub,
+          })
+        });
+        const data = await res.json();
+        if(res.ok){
+          sessionStorage.setItem('usuario_sesion', JSON.stringify(data.usuario));
+          showMsg('login-message','¡Bienvenido con Google! Redirigiendo…','success');
+          actualizarNavAuth();
+          setTimeout(()=>{
+            if(data.usuario.id_rol===2){ window.location.href='/admin'; }
+            else{ closeModal(); clearMsg('login-message'); }
+          },1200);
+        } else {
+          showMsg('login-message', data.message||'Error al iniciar con Google.','error');
+        }
+      } catch {
+        showMsg('login-message','Error de conexión con Google.','error');
+      }
+    },
+  });
+  client.requestAccessToken({ prompt: 'select_account' });
+}
+
+async function _onGoogleCredential(response){
+  // Callback del One Tap (si aparece automáticamente)
+  try{
+    const res = await fetch('/api/auth/google',{
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ credential: response.credential })
+    });
+    const data = await res.json();
+    if(res.ok){
+      sessionStorage.setItem('usuario_sesion', JSON.stringify(data.usuario));
+      showMsg('login-message','¡Bienvenido con Google! Redirigiendo…','success');
+      actualizarNavAuth();
+      setTimeout(()=>{
+        if(data.usuario.id_rol===2){ window.location.href='/admin'; }
+        else{ closeModal(); clearMsg('login-message'); }
+      },1200);
+    } else {
+      showMsg('login-message', data.message||'Error al iniciar con Google.','error');
+    }
+  } catch { showMsg('login-message','Error de conexión con Google.','error'); }
+}
+
+async function _onGoogleCredential(response){
+  try{
+    const res=await fetch('/api/auth/google',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({credential:response.credential})
+    });
+    const data=await res.json();
+    if(res.ok){
+      sessionStorage.setItem('usuario_sesion',JSON.stringify(data.usuario));
+      showMsg('login-message','¡Bienvenido con Google! Redirigiendo…','success');
+      actualizarNavAuth();
+      setTimeout(()=>{
+        if(data.usuario.id_rol===2){window.location.href='/admin';}
+        else{closeModal();clearMsg('login-message');}
+      },1200);
+    } else {
+      showMsg('login-message',data.message||'Error al iniciar con Google.','error');
+    }
+  }catch{showMsg('login-message','Error de conexión con Google.','error');}
+}
 
 async function handleInscripcion(){
   const usuario = requireSesion('cursos');
@@ -1279,5 +1448,67 @@ async function abrirMisInscripciones(){
 </script>
 <script src="../js/cursos.js"></script>
 <script src="../js/banquetes.js"></script>
+<script>
+// ── Verificar si llegó desde confirmación de correo ──
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.has('verified')){
+    window.addEventListener('DOMContentLoaded', function(){
+      const ok = params.get('verified') === '1';
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:14px 28px;border-radius:10px;font-size:.9rem;font-weight:600;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.2);color:#fff;max-width:90vw;text-align:center;';
+      if(ok){
+        toast.style.background = '#1a7a3c';
+        toast.textContent = '✅ ¡Correo verificado! Tu cuenta está activa. Ya puedes iniciar sesión.';
+        setTimeout(()=>{ document.getElementById('loginModal').classList.add('open'); switchTab('login'); }, 600);
+      } else {
+        toast.style.background = '#c0392b';
+        const msg = params.get('msg') || 'Enlace inválido o expirado.';
+        toast.textContent = '❌ ' + decodeURIComponent(msg);
+      }
+      document.body.appendChild(toast);
+      setTimeout(()=>toast.remove(), 6000);
+      // Limpiar la URL
+      history.replaceState({}, '', '/');
+    });
+  }
+})();
+</script>
+<script>
+// ── Banner de regreso al admin (modo preview) ──
+(function(){
+  if(sessionStorage.getItem('admin_preview_mode') !== '1') return;
+  window.addEventListener('DOMContentLoaded', function(){
+    const banner = document.createElement('div');
+    banner.id = 'admin-preview-banner';
+    banner.style.cssText = [
+      'position:fixed','top:0','left:0','right:0','z-index:99999',
+      'background:#7a1f3d','color:#fff','padding:10px 20px',
+      'display:flex','align-items:center','justify-content:space-between',
+      'font-family:\'Jost\',sans-serif','font-size:.83rem','font-weight:500',
+      'box-shadow:0 3px 14px rgba(0,0,0,.25)'
+    ].join(';');
+    banner.innerHTML = `
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-outlined" style="font-size:1rem">visibility</span>
+        Estás viendo el sitio como usuario (modo preview del admin)
+      </span>
+      <button onclick="regresarAlAdmin()"
+              style="background:#fff;color:#7a1f3d;border:none;border-radius:6px;
+                     padding:6px 16px;font-weight:700;cursor:pointer;font-size:.82rem">
+        ← Regresar al Admin
+      </button>
+    `;
+    document.body.prepend(banner);
+    // Empujar el contenido hacia abajo para que no quede tapado
+    document.body.style.paddingTop = '44px';
+  });
+})();
+
+function regresarAlAdmin(){
+  sessionStorage.removeItem('admin_preview_mode');
+  window.location.href = '/admin';
+}
+</script>
 </body>
 </html>

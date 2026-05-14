@@ -434,6 +434,13 @@ table{min-width:600px;}
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div class="topbar-actions">
         <button class="btn-add" id="btn-add-main" onclick="openAddModal()" style="display:none">+ Nuevo Curso</button>
+        <button onclick="verComoUsuario()" title="Ver el sitio como lo ven los usuarios"
+                style="background:transparent;border:1.5px solid var(--dark-pink);color:var(--dark-pink);
+                       border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:600;cursor:pointer;
+                       display:flex;align-items:center;gap:6px;white-space:nowrap">
+          <span class="material-symbols-outlined" style="font-size:1rem">visibility</span>
+          Ver como usuario
+        </button>
         <span style="font-size:.78rem;color:var(--text-light)" id="topbar-date"></span>
       </div>
     </div>
@@ -579,38 +586,53 @@ table{min-width:600px;}
             <button class="btn-save" onclick="showToast('Configuración guardada','success')">Guardar Cambios</button>
           </div>
           <div class="settings-card">
-            <h3>Notificaciones</h3>
+            <h3>Notificaciones por Correo</h3>
+            <p style="font-size:.75rem;color:#aaa;margin:-4px 0 12px;line-height:1.5">Los correos se envían a <strong id="notif-email-label">—</strong></p>
             <div class="setting-row">
               <label>Nueva inscripción</label>
-              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="notif-inscripcion" onchange="guardarNotificaciones()"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
               <label>Solicitud de banquete</label>
-              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="notif-banquete" onchange="guardarNotificaciones()"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
-              <label>Recordatorio de curso (24h antes)</label>
-              <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+              <label style="display:flex;flex-direction:column;gap:2px">
+                Recordatorio de curso (24h antes)
+                <span style="font-size:.7rem;color:#aaa">Se manda a todos los inscritos 24h antes del inicio</span>
+              </label>
+              <label class="toggle"><input type="checkbox" id="notif-recordatorio24h" onchange="guardarNotificaciones()"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
               <label>Reporte semanal</label>
-              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="notif-reporte-semanal" onchange="guardarNotificaciones()"><span class="slider"></span></label>
             </div>
+            <div id="notif-status" style="font-size:.74rem;color:var(--text-light);margin-top:10px;min-height:16px"></div>
           </div>
           <div class="settings-card">
-            <h3>Administradores Autorizados</h3>
+            <h3>Docentes Autorizados</h3>
             <div class="admin-list" id="admin-list">
               <div class="admin-row">
                 <div class="user-avatar">A</div>
                 <div class="admin-row-info"><strong>Administrador Principal</strong><span>admin@panaderia.com · Super Admin</span></div>
               </div>
             </div>
-            <div style="margin-top:14px">
-              <div class="form-group" style="margin-bottom:10px">
-                <label>Agregar administrador</label>
-                <input type="email" id="new-admin-email" placeholder="correo@ejemplo.com">
+            <div style="margin-top:16px">
+              <label style="font-size:.78rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px">Invitar nuevo docente</label>
+              <p style="font-size:.75rem;color:#aaa;margin:0 0 10px;line-height:1.5">El correo debe pertenecer a un usuario ya registrado en el sistema.</p>
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <div style="flex:1">
+                  <input type="email" id="new-admin-email" placeholder="correo@ejemplo.com"
+                         oninput="onAdminEmailInput()"
+                         style="width:100%;box-sizing:border-box">
+                  <!-- Feedback en tiempo real -->
+                  <div id="admin-email-feedback" style="font-size:.76rem;margin-top:5px;min-height:18px;display:flex;align-items:center;gap:5px"></div>
+                </div>
+                <button id="btn-invitar-docente" class="btn-save" onclick="addAdmin()"
+                        style="padding:9px 16px;font-size:.82rem;white-space:nowrap;margin-top:0;opacity:.5;pointer-events:none">
+                  Invitar ›
+                </button>
               </div>
-              <button class="btn-save" onclick="addAdmin()" style="padding:8px 18px;font-size:.82rem">Agregar ›</button>
             </div>
           </div>
           <div class="settings-card" style="border:2px solid #25D366;border-radius:14px">
@@ -903,15 +925,15 @@ async function handleAdminLogin(){
       errEl.classList.add('show'); return;
     }
 
-    // ⚠ Cambia el número 2 si tu rol Administrador tiene otro id_rol en la BD
-    if(data.usuario.id_rol !== 2){
+    // id_rol 2 = Super Admin, 3 = Docente (acceso al admin sin Ajustes)
+    if(data.usuario.id_rol !== 2 && data.usuario.id_rol !== 3){
       errEl.textContent = 'No tienes permisos de administrador.';
       errEl.classList.add('show'); return;
     }
 
     currentAdmin = {
-      name : data.usuario.nombre_completo,
-      email: data.usuario.email,
+      name  : data.usuario.nombre_completo,
+      email : data.usuario.email,
       id_rol: data.usuario.id_rol
     };
     sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
@@ -928,6 +950,13 @@ function _mostrarPanelAdmin(){
   document.getElementById('admin-app').classList.add('visible');
   document.getElementById('sidebar-name').textContent = currentAdmin.name;
   document.getElementById('sidebar-avatar').textContent = currentAdmin.name[0].toUpperCase();
+  // Docentes no ven Ajustes (solo Super Admin)
+  const esDocente = currentAdmin.id_rol === 3;
+  const navAjustes = document.getElementById('nav-ajustes');
+  if(navAjustes) navAjustes.style.display = esDocente ? 'none' : '';
+  // Actualizar tag en sidebar
+  const tag = document.querySelector('.admin-tag');
+  if(tag) tag.textContent = esDocente ? 'DOCENTE' : 'ADMIN';
   document.getElementById('setting-name').value = currentAdmin.name;
   document.getElementById('setting-email').value = currentAdmin.email;
   initApp();
@@ -955,10 +984,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function handleLogout(){
   sessionStorage.removeItem('admin_session');
+  sessionStorage.removeItem('usuario_sesion');
   currentAdmin = null;
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('admin-app').classList.remove('visible');
-  document.getElementById('admin-pass').value = '';
+  window.location.href = '/';
 }
 
 // ══ INIT ══
@@ -974,7 +1002,7 @@ function initApp(){
 }
 
 // ══ NAVIGATION ══
-function showPanel(name){
+function showPanel(name){ if(name==='ajustes') cargarNotificaciones();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -1328,20 +1356,142 @@ function updateSidebarName(val){
   document.getElementById('sidebar-avatar').textContent = initials;
 }
 
-function addAdmin(){
+// ── Validación en tiempo real del correo de docente ──
+let _adminEmailTimer = null;
+let _adminEmailValid = false;
+
+function onAdminEmailInput(){
+  clearTimeout(_adminEmailTimer);
+  const input = document.getElementById('new-admin-email');
+  const feedback = document.getElementById('admin-email-feedback');
+  const btn = document.getElementById('btn-invitar-docente');
+  const email = input.value.trim();
+
+  _adminEmailValid = false;
+  btn.style.opacity = '.5';
+  btn.style.pointerEvents = 'none';
+
+  if(!email || !email.includes('@')){
+    feedback.innerHTML = '';
+    return;
+  }
+
+  feedback.innerHTML = '<span style="color:#aaa">Verificando…</span>';
+
+  _adminEmailTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('/api/auth/check-email', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if(data.found){
+        feedback.innerHTML = `<span style="color:#1a7a3c">✅ ${data.nombre} encontrado</span>`;
+        _adminEmailValid = true;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      } else {
+        feedback.innerHTML = '<span style="color:#c0392b">❌ Correo no encontrado — el usuario debe tener cuenta creada</span>';
+      }
+    } catch {
+      feedback.innerHTML = '<span style="color:#aaa">Error al verificar</span>';
+    }
+  }, 600);
+}
+
+async function addAdmin(){
   const email = document.getElementById('new-admin-email').value.trim();
-  if(!email || !email.includes('@')){ showToast('Ingresa un correo válido','error'); return; }
-  const list = document.getElementById('admin-list');
-  const initial = email[0].toUpperCase();
-  list.insertAdjacentHTML('beforeend',`
-    <div class="admin-row">
-      <div class="user-avatar">${initial}</div>
-      <div class="admin-row-info"><strong>${email}</strong><span>Admin · Pendiente de confirmación</span></div>
-      <button class="btn-remove-admin" onclick="this.closest('.admin-row').remove()">✕</button>
-    </div>
-  `);
-  document.getElementById('new-admin-email').value = '';
-  showToast(`${email} agregado como admin ✓`,'success');
+  if(!_adminEmailValid){ showToast('Verifica el correo primero','error'); return; }
+
+  const btn = document.getElementById('btn-invitar-docente');
+  const feedback = document.getElementById('admin-email-feedback');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+  feedback.innerHTML = '<span style="color:#aaa">Enviando invitación…</span>';
+
+  try {
+    const res = await fetch('/api/auth/invitar-docente', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if(res.ok){
+      const list = document.getElementById('admin-list');
+      const initial = (data.nombre || email)[0].toUpperCase();
+      list.insertAdjacentHTML('beforeend', `
+        <div class="admin-row">
+          <div class="user-avatar">${initial}</div>
+          <div class="admin-row-info">
+            <strong>${data.nombre || email}</strong>
+            <span>${email} · Invitación enviada ✉️</span>
+          </div>
+          <button class="btn-remove-admin" onclick="this.closest('.admin-row').remove()">✕</button>
+        </div>
+      `);
+      document.getElementById('new-admin-email').value = '';
+      feedback.innerHTML = '';
+      _adminEmailValid = false;
+      btn.style.opacity = '.5';
+      btn.style.pointerEvents = 'none';
+      showToast(`Invitación enviada a ${data.nombre || email} ✓`, 'success');
+    } else {
+      feedback.innerHTML = `<span style="color:#c0392b">❌ ${data.message}</span>`;
+      showToast(data.message || 'Error al invitar', 'error');
+    }
+  } catch {
+    feedback.innerHTML = '<span style="color:#c0392b">❌ Error de conexión</span>';
+    showToast('Error de conexión', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Invitar ›';
+}
+
+// ── Notificaciones: guardar en config API ──
+async function guardarNotificaciones(){
+  const vals = {
+    'notif_inscripcion'   : document.getElementById('notif-inscripcion')?.checked ? '1' : '0',
+    'notif_banquete'      : document.getElementById('notif-banquete')?.checked ? '1' : '0',
+    'notif_recordatorio24h': document.getElementById('notif-recordatorio24h')?.checked ? '1' : '0',
+    'notif_reporte_semanal': document.getElementById('notif-reporte-semanal')?.checked ? '1' : '0',
+  };
+  const status = document.getElementById('notif-status');
+  try {
+    await Promise.all(Object.entries(vals).map(([clave, valor]) =>
+      fetch(`/api/config/${clave}`, {
+        method : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ valor })
+      })
+    ));
+    if(status) status.innerHTML = '<span style="color:#1a7a3c">✅ Guardado</span>';
+    setTimeout(() => { if(status) status.innerHTML = ''; }, 2500);
+  } catch {
+    if(status) status.innerHTML = '<span style="color:#c0392b">Error al guardar</span>';
+  }
+}
+
+async function cargarNotificaciones(){
+  try {
+    const res = await fetch('/api/config');
+    const data = await res.json();
+    const map = {
+      'notif_inscripcion'   : 'notif-inscripcion',
+      'notif_banquete'      : 'notif-banquete',
+      'notif_recordatorio24h': 'notif-recordatorio24h',
+      'notif_reporte_semanal': 'notif-reporte-semanal',
+    };
+    for(const [clave, id] of Object.entries(map)){
+      const el = document.getElementById(id);
+      if(el && data[clave] !== undefined) el.checked = data[clave] === '1';
+    }
+    // Mostrar correo destino
+    const lbl = document.getElementById('notif-email-label');
+    if(lbl && data['negocio_email']) lbl.textContent = data['negocio_email'];
+  } catch { /* sin conexión, dejar defaults */ }
 }
 
 // ══ HELPERS ══
@@ -1418,7 +1568,7 @@ function checkAdminAccess() {
   if (rawAdmin) {
     try {
       const s = JSON.parse(rawAdmin);
-      if (s && s.id_rol === 2) return; // OK — sesión de admin válida
+      if (s && (s.id_rol === 2 || s.id_rol === 3)) return; // OK — Super Admin o Docente
     } catch {}
   }
 
@@ -1427,14 +1577,12 @@ function checkAdminAccess() {
   if (rawUsuario) {
     try {
       const s = JSON.parse(rawUsuario);
-      if (s && s.id_rol === 2) {
-        // Crear sesión de admin a partir de la sesión del usuario
-        // para que el panel funcione correctamente
+      if (s && (s.id_rol === 2 || s.id_rol === 3)) {
         currentAdmin = { name: s.nombre_completo, email: s.email, id_rol: s.id_rol };
         sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
         return; // OK
       }
-      // Logueado pero no es admin → redirigir
+      // Logueado pero sin permisos → redirigir
       window.location.replace('/');
       return;
     } catch {}
@@ -1468,6 +1616,14 @@ function closeSidebar() {
   const ov = document.getElementById('sidebar-overlay');
   if (ov) ov.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+
+// ── Ver como usuario ──
+function verComoUsuario(){
+  // Marcar que estamos en modo preview para poder volver
+  sessionStorage.setItem('admin_preview_mode', '1');
+  window.location.href = '/';
 }
 
 // FIX: NO sobreescribir showPanel con recursión.
@@ -1608,5 +1764,31 @@ async function guardarWaNumber() {
 
 </script>
 <script src="../js/admin.js"></script>
+<script>
+// ── Toast si viene de aceptar invitación de docente ──
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(!params.has('docente')) return;
+  window.addEventListener('DOMContentLoaded', function(){
+    const val = params.get('docente');
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:14px 28px;border-radius:10px;font-size:.9rem;font-weight:600;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.2);color:#fff;max-width:90vw;text-align:center;';
+    if(val === '1'){
+      toast.style.background = '#1a7a3c';
+      toast.textContent = '✅ ¡Invitación aceptada! Ahora tienes acceso de Docente.';
+    } else if(val === 'needs_account'){
+      toast.style.background = '#c0392b';
+      toast.textContent = '❌ Primero debes crear tu cuenta de usuario en el sitio web.';
+    } else {
+      toast.style.background = '#c0392b';
+      const msg = params.get('msg') || 'Enlace inválido o expirado.';
+      toast.textContent = '❌ ' + decodeURIComponent(msg);
+    }
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 6000);
+    history.replaceState({}, '', window.location.pathname);
+  });
+})();
+</script>
 </body>
 </html>
