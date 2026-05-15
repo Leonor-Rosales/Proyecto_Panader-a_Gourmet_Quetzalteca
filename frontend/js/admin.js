@@ -22,13 +22,54 @@ const API = "/api";
 async function loadDashboard() {
   try {
     const res  = await fetch(`${API}/dashboard`);
+    if (!res.ok) {
+      console.warn("Dashboard API error HTTP", res.status, "- usando conteo local");
+      _loadDashboardLocal();
+      return;
+    }
     const data = await res.json();
     setStatValue("stat-cursos",        data.total_cursos);
     setStatValue("stat-inscripciones", data.total_inscripciones);
     setStatValue("stat-productos",     data.total_productos);
     setStatValue("stat-banquetes",     data.banquetes_pendientes);
+
+    // Ingresos reales del mes (pedidos entregados + inscripciones pagadas)
+    const ingresos = data.ingresos_mes || 0;
+    setStatValue("stat-ingresos", "Q." + ingresos.toLocaleString("es-GT", {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+
+    // Subtexto inscripciones esta semana
+    const semana = data.inscripciones_semana || 0;
+    const elSemana = document.getElementById("stat-inscripciones-change");
+    if (elSemana) {
+      elSemana.textContent = semana > 0 ? `↑ ${semana} esta semana` : "Sin nuevas esta semana";
+    }
   } catch (err) {
-    console.warn("Dashboard stats error:", err.message);
+    console.warn("Dashboard stats error:", err.message, "- usando conteo local");
+    _loadDashboardLocal();
+  }
+}
+
+// Fallback: cuenta desde los arrays en memoria si la API falla
+function _loadDashboardLocal() {
+  try {
+    const cursos       = (window.cursosData        || []).length;
+    const inscrips     = (window.inscripcionesData  || []).length;
+    const productos    = (window.pasteriaData       || []).length;
+    const banquetes    = (window.banquetesData      || []).filter(b => b.estado === "pendiente").length;
+    const ingresosMes  = (window.inscripcionesData  || [])
+      .filter(i => (i.estadoPago || i.estado_pago) === "Pagado")
+      .reduce((sum, i) => {
+        const c = (window.cursosData || []).find(c => c.id === i.cursoId);
+        return sum + (c ? (c.precioNum || 0) : 0);
+      }, 0);
+
+    setStatValue("stat-cursos",        cursos);
+    setStatValue("stat-inscripciones", inscrips);
+    setStatValue("stat-productos",     productos);
+    setStatValue("stat-banquetes",     banquetes);
+    setStatValue("stat-ingresos", "Q." + ingresosMes.toLocaleString("es-GT", {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+  } catch(e) {
+    console.warn("_loadDashboardLocal error:", e);
   }
 }
 
@@ -111,6 +152,7 @@ async function apiSaveCurso(payload, id = null) {
     if (!res.ok) { showToast(data.message || "Error al guardar", "error"); return; }
     showToast(id ? "Curso actualizado ✓" : "Curso creado ✓");
     await apiLoadCursos();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -128,6 +170,7 @@ async function apiDeleteCurso(id) {
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Curso eliminado ✓");
     await apiLoadCursos();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -190,6 +233,7 @@ async function apiSaveProducto(payload, id = null) {
     if (!res.ok) { showToast(data.message || "Error", "error"); return; }
     showToast(id ? "Producto actualizado ✓" : "Producto creado ✓");
     await apiLoadProductos();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -206,6 +250,7 @@ async function apiDeleteProducto(id) {
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Producto eliminado ✓");
     await apiLoadProductos();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -287,6 +332,7 @@ async function apiConfirmarInscripcion(id) {
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Inscripción confirmada ✓");
     await apiLoadInscripciones();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -299,6 +345,7 @@ async function apiCancelarInscripcion(id) {
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Inscripción cancelada");
     await apiLoadInscripciones();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -330,7 +377,6 @@ async function apiLoadBanquetes() {
     window.banquetesData = mapped;
 
     if (typeof renderBanquetes === "function") renderBanquetes();
-    if (typeof renderDashboard === "function") renderDashboard();
   } catch (err) {
     console.warn("Error al cargar banquetes:", err.message);
     showToast("Error al cargar banquetes", "error");
@@ -356,6 +402,7 @@ async function _updateBanquete(id, estado, msg) {
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast(msg);
     await apiLoadBanquetes();
+    await loadDashboard();
   } catch {
     showToast("Error de conexión", "error");
   }
@@ -366,15 +413,16 @@ async function _updateBanquete(id, estado, msg) {
 // ══════════════════════════════════════════
 
 (async function arrancarAPI() {
-  try {
-    await Promise.all([
-      loadDashboard(),
-      apiLoadCursos(),
-      apiLoadProductos(),
-      apiLoadInscripciones(),
-      apiLoadBanquetes(),
-    ]);
-  } catch (err) {
-    console.warn("arrancarAPI error:", err);
-  }
+  // Cada carga es independiente: si una falla, las demás siguen
+  await Promise.allSettled([
+    apiLoadCursos(),
+    apiLoadProductos(),
+    apiLoadInscripciones(),
+    apiLoadBanquetes(),
+  ]);
+  // Dashboard siempre se intenta, con fallback local si la API falla
+  await loadDashboard();
+
+  // Auto-refresh del dashboard cada 30 segundos (sin recargar la página)
+  setInterval(loadDashboard, 30000);
 })();

@@ -452,25 +452,25 @@ table{min-width:600px;}
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">📅</div>
-            <div class="stat-value" id="stat-cursos">6</div>
+            <div class="stat-value" id="stat-cursos">—</div>
             <div class="stat-label">Cursos Activos</div>
             <div class="stat-change neutral">Este mes</div>
           </div>
           <div class="stat-card gold">
             <div class="stat-icon">✍️</div>
-            <div class="stat-value" id="stat-inscripciones">12</div>
+            <div class="stat-value" id="stat-inscripciones">—</div>
             <div class="stat-label">Inscripciones</div>
-            <div class="stat-change up">↑ 3 esta semana</div>
+            <div class="stat-change up" id="stat-inscripciones-change">Esta semana</div>
           </div>
           <div class="stat-card green">
             <div class="stat-icon">💰</div>
-            <div class="stat-value" id="stat-ingresos">Q.2,850</div>
-            <div class="stat-label">Ingresos estimados</div>
-            <div class="stat-change up">↑ Mes actual</div>
+            <div class="stat-value" id="stat-ingresos">—</div>
+            <div class="stat-label">Ingresos del mes</div>
+            <div class="stat-change up">Pedidos + Inscripciones</div>
           </div>
           <div class="stat-card pink">
             <div class="stat-icon">🍽</div>
-            <div class="stat-value" id="stat-banquetes">3</div>
+            <div class="stat-value" id="stat-banquetes">—</div>
             <div class="stat-label">Solicitudes Banquetes</div>
             <div class="stat-change neutral">Pendientes</div>
           </div>
@@ -887,13 +887,13 @@ const DEMO_BANQUETES = [
 
 // Load from localStorage if available
 var cursosData = JSON.parse(localStorage.getItem('admin_cursos') || 'null') || [...DEMO_CURSOS];
-var inscripcionesData = JSON.parse(localStorage.getItem('admin_inscripciones') || 'null') || [...DEMO_INSCRIPCIONES];
+var inscripcionesData = [...DEMO_INSCRIPCIONES]; // datos reales llegan desde API en apiLoadInscripciones
 var pasteriaData = JSON.parse(localStorage.getItem('admin_pasteles') || 'null') || [...DEMO_PASTELES];
 var banquetesData = JSON.parse(localStorage.getItem('admin_banquetes') || 'null') || [...DEMO_BANQUETES];
 
 function saveToStorage(){
   localStorage.setItem('admin_cursos', JSON.stringify(cursosData));
-  localStorage.setItem('admin_inscripciones', JSON.stringify(inscripcionesData));
+  // inscripciones se manejan desde la API, no desde localStorage
   localStorage.setItem('admin_pasteles', JSON.stringify(pasteriaData));
   localStorage.setItem('admin_banquetes', JSON.stringify(banquetesData));
 }
@@ -991,14 +991,20 @@ function handleLogout(){
 
 // ══ INIT ══
 function initApp(){
-  // Renderiza con datos demo mientras carga la API (evita pantalla en blanco)
-  renderDashboard();
+  // Renderiza con datos demo inmediatamente (evita pantalla en blanco)
   renderCursos();
   renderInscripciones();
   renderPasteleria();
   renderBanquetes();
-  // NOTA: admin.js se auto-ejecuta al cargarse y reemplaza los datos demo
-  // con los datos reales de la base de datos automáticamente
+  // Luego carga datos reales desde la API (sobreescribe los demo)
+  if (typeof apiLoadCursos === 'function') {
+    Promise.all([
+      apiLoadCursos(),
+      apiLoadProductos(),
+      apiLoadInscripciones(),
+      apiLoadBanquetes(),
+    ]).then(() => loadDashboard()).catch(e => console.warn('initApp API error:', e));
+  }
 }
 
 // ══ NAVIGATION ══
@@ -1019,16 +1025,13 @@ function showPanel(name){ if(name==='ajustes') cargarNotificaciones();
 
 // ══ DASHBOARD ══
 function renderDashboard(){
-  document.getElementById('stat-cursos').textContent = cursosData.filter(c=>c.estado==='disponible').length;
-  document.getElementById('stat-inscripciones').textContent = inscripcionesData.filter(i=>i.estado!=='cancelada').length;
-  const ingresos = inscripcionesData.filter(i=>i.estado==='confirmada').reduce((sum,i)=>{
-    const n = parseInt((i.pago||'0').replace(/[^0-9]/g,''))||0; return sum+n;
-  },0);
-  document.getElementById('stat-ingresos').textContent = 'Q.'+ingresos.toLocaleString();
-  document.getElementById('stat-banquetes').textContent = banquetesData.filter(b=>b.estado==='pendiente').length;
-
+  // Los contadores los actualiza SOLO loadDashboard() desde la API.
+  // Aquí solo actualizamos la tabla de próximos cursos.
+  if (!cursosData || cursosData.length === 0) return;
   const next4 = [...cursosData].sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).slice(0,4);
-  document.getElementById('dashboard-tbody').innerHTML = next4.map(c=>`
+  const tbody = document.getElementById('dashboard-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = next4.map(c=>`
     <tr>
       <td><strong>${c.titulo}</strong></td>
       <td>${formatDate(c.fecha)}</td>
@@ -1184,8 +1187,13 @@ function renderInscripciones(list){
         <td><strong>${i.pago}</strong><div class="inscripcion-detail">${i.metodoPago}</div></td>
         <td>
           <div class="actions-cell">
+            <select class="estado-pago-select" onchange="cambiarEstadoPago(${i.id}, this.value)"
+              style="font-size:.72rem;padding:4px 8px;border:1.5px solid #e8d0d8;border-radius:6px;background:#fff;color:var(--text);cursor:pointer;font-family:'Jost',sans-serif">
+              <option value="Pendiente" ${(i.estadoPago||'Pendiente')==='Pendiente'?'selected':''}>Pendiente</option>
+              <option value="Anticipo"  ${(i.estadoPago||'Pendiente')==='Anticipo' ?'selected':''}>Anticipo</option>
+              <option value="Pagado"    ${(i.estadoPago||'Pendiente')==='Pagado'   ?'selected':''}>Pagado</option>
+            </select>
             <button class="btn-icon" onclick="verInscripcion(${i.id})" title="Ver detalle">👁</button>
-            ${i.estado==='pendiente'?`<button class="btn-icon" onclick="confirmarInscripcion(${i.id})" title="Confirmar pago" style="color:var(--green)">✓</button>`:''}
             <button class="btn-icon danger" onclick="cancelarInscripcion(${i.id})" title="Cancelar">✕</button>
           </div>
         </td>
@@ -1243,6 +1251,24 @@ async function confirmarInscripcion(id){
 
 async function cancelarInscripcion(id){
   await apiCancelarInscripcion(id);
+}
+
+async function cambiarEstadoPago(id, nuevoEstado){
+  try {
+    const res = await fetch(`/api/inscripciones/${id}`, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ estado_pago: nuevoEstado }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.message || 'Error', 'error'); await apiLoadInscripciones(); return; }
+    showToast(`Estado cambiado a ${nuevoEstado} ✓`);
+    await apiLoadInscripciones();
+    await loadDashboard();
+  } catch {
+    showToast('Error de conexión', 'error');
+    await apiLoadInscripciones();
+  }
 }
 
 // ══ PASTELERÍA ══
@@ -1678,23 +1704,18 @@ async function handleFileSelect(fileInput, urlInputId, previewImgId, placeholder
     else        placeholder.style.display = 'none';
   }
 
-  // Subir al servidor via /api/upload
-  showToast('Subiendo imagen…', 'neutral');
-  const formData = new FormData();
-  formData.append('imagen', file);
-
-  try {
-    const res  = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (!res.ok) { showToast(data.message || 'Error al subir imagen', 'error'); return; }
-
-    // AÑADIDO: guardar la URL del servidor en el input de URL
+  // Convertir a base64 para guardar directamente en la BD (sin archivos en disco)
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result; // data:image/jpeg;base64,...
     const urlInput = document.getElementById(urlInputId);
-    if (urlInput) urlInput.value = data.url;
-    showToast('Imagen subida ✓');
-  } catch {
-    showToast('Error de conexión al subir imagen', 'error');
-  }
+    if (urlInput) urlInput.value = base64;
+    showToast('Imagen lista ✓');
+  };
+  reader.onerror = function() {
+    showToast('Error al leer la imagen', 'error');
+  };
+  reader.readAsDataURL(file);
 }
 
 // CAMBIO: previewImage ahora acepta IDs dinámicos (para curso y pastel)
