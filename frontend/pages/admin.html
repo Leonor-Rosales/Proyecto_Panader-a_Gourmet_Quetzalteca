@@ -757,7 +757,7 @@ table{min-width:600px;}
         <!-- Opción 2 — pegar URL -->
         <div style="margin-top:10px">
           <p style="font-size:.7rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Opción 2 — Pegar URL</p>
-          <input class="img-url-input" type="url" id="curso-imagen" placeholder="https://images.unsplash.com/..."
+          <input class="img-url-input" type="text" id="curso-imagen" placeholder="https://images.unsplash.com/..."
             oninput="previewImage(this.value,'img-preview','img-placeholder')">
         </div>
       </div>
@@ -802,7 +802,7 @@ table{min-width:600px;}
 
         <!-- Opción 2 — pegar URL -->
         <p style="font-size:.7rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Opción 2 — Pegar URL</p>
-        <input class="img-url-input" type="url" id="pastel-imagen" placeholder="https://..."
+        <input class="img-url-input" type="text" id="pastel-imagen" placeholder="https://..."
           style="border:1.5px solid #e8d0d8;border-radius:7px;padding:10px 13px;width:100%"
           oninput="previewPastelUrl(this.value)">
       </div>
@@ -1110,7 +1110,8 @@ function closeCursoModal(){ document.getElementById('curso-modal').classList.rem
 function previewImage(url){
   const img = document.getElementById('img-preview');
   const ph = document.getElementById('img-placeholder');
-  if(url && url.startsWith('http')){
+  const valid = url && (url.startsWith('http') || url.startsWith('/uploads/'));
+  if(valid){
     img.src = url;
     img.style.display = 'block';
     ph.style.display = 'none';
@@ -1287,6 +1288,7 @@ async function openEditPastel(id){
     ? p.precioNum
     : parseFloat(String(p.precio).replace(/^[^\d]+/, "")) || "";
   document.getElementById('pastel-imagen').value = p.imagen||'';
+  previewPastelUrl(p.imagen||'');
   document.getElementById('pastel-modal').classList.add('open');
 }
 
@@ -1696,11 +1698,13 @@ async function handleFileSelect(fileInput, urlInputId, previewImgId, placeholder
 }
 
 // CAMBIO: previewImage ahora acepta IDs dinámicos (para curso y pastel)
+// FIX: también acepta URLs relativas como /uploads/... (imágenes subidas al servidor)
 function previewImage(url, imgId = 'img-preview', phId = 'img-placeholder') {
   const img = document.getElementById(imgId);
   const ph  = document.getElementById(phId);
   if (!img) return;
-  if (url && url.startsWith('http')) {
+  const valid = url && (url.startsWith('http') || url.startsWith('/uploads/'));
+  if (valid) {
     img.src = url; img.style.display = 'block';
     if (ph) ph.style.display = 'none';
   } else {
@@ -1710,11 +1714,13 @@ function previewImage(url, imgId = 'img-preview', phId = 'img-placeholder') {
 }
 
 // AÑADIDO: preview para URL de pasteles
+// FIX: también acepta URLs relativas /uploads/...
 function previewPastelUrl(url) {
   const img  = document.getElementById('pastel-img-preview');
   const area = document.getElementById('pastel-img-preview-area');
   if (!img) return;
-  if (url && url.startsWith('http')) {
+  const valid = url && (url.startsWith('http') || url.startsWith('/uploads/'));
+  if (valid) {
     img.src = url;
     area.style.display = 'block';
   } else {
