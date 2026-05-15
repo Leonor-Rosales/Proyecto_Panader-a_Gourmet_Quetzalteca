@@ -171,6 +171,41 @@ def create_app():
     def uploaded_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+    # ── Endpoint para subir imágenes de cursos y productos ──
+    @app.route("/api/upload", methods=["POST"])
+    def upload_image():
+        """
+        Recibe un archivo de imagen (campo 'imagen') via multipart/form-data,
+        lo guarda en frontend/uploads/ con nombre único (uuid) y devuelve
+        la URL pública para guardarla en la BD.
+        """
+        import uuid
+        from werkzeug.utils import secure_filename
+
+        if "imagen" not in request.files:
+            return jsonify({"message": "No se recibió ningún archivo."}), 400
+
+        file = request.files["imagen"]
+        if file.filename == "":
+            return jsonify({"message": "El archivo no tiene nombre."}), 400
+
+        ALLOWED = {"image/jpeg", "image/png", "image/webp"}
+        if file.content_type not in ALLOWED:
+            return jsonify({"message": "Solo se permiten JPG, PNG o WEBP."}), 400
+
+        # Generar nombre único para evitar colisiones
+        ext = os.path.splitext(secure_filename(file.filename))[1].lower()
+        if ext not in (".jpg", ".jpeg", ".png", ".webp"):
+            ext = ".jpg"
+        filename = uuid.uuid4().hex + ext
+
+        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(save_path)
+
+        # Devolver la URL pública que el frontend guardará en la BD
+        url = f"/uploads/{filename}"
+        return jsonify({"url": url, "filename": filename}), 200
+
     # ── Manejo global de errores ───────────────────────────
     @app.errorhandler(404)
     def not_found(e):
