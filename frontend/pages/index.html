@@ -648,7 +648,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       <div class="form-row"><div class="form-group"><label>Tipo de evento</label><select id="banq-tipo"><option>Selecciona...</option><option>Boda</option><option>Evento Corporativo</option><option>Celebración Privada</option><option>Otro</option></select></div><div class="form-group"><label>Número de personas</label><input type="number" id="banq-personas" placeholder="ej. 80"></div></div>
       <div class="form-group"><label>Fecha del evento</label><input type="date" id="banq-fecha"></div>
       <div class="form-group"><label>Mensaje adicional</label><textarea id="banq-mensaje" placeholder="Cuéntanos más sobre tu evento..."></textarea></div>
-      <button class="btn-submit" onclick="enviarCotizacionWA()">Enviar Solicitud por WhatsApp ›</button>
+      <button type="button" class="btn-submit" onclick="enviarCotizacionWA()">Enviar Solicitud por WhatsApp ›</button>
     </div>
   </div>
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
@@ -681,7 +681,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       <div class="form-group"><label>Teléfono</label><input type="tel" id="cont-telefono" placeholder="+502 ---- ----"></div>
       <div class="form-group"><label>Asunto</label><select id="cont-asunto"><option>Consulta sobre cursos</option><option>Pedido de pastelería</option><option>Cotización de banquetes</option><option>Otro</option></select></div>
       <div class="form-group"><label>Mensaje</label><textarea id="cont-mensaje" placeholder="Escribe tu mensaje aquí..."></textarea></div>
-      <button class="btn-submit" onclick="enviarMensajeContacto()">Enviar Mensaje por WhatsApp ›</button>
+      <button type="button" class="btn-submit" onclick="enviarMensajeContacto()">Enviar Mensaje por WhatsApp ›</button>
     </div>
   </div>
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
@@ -1258,9 +1258,6 @@ function enviarCotizacionWA() {
   if (mensaje)  msg += `Detalles: ${mensaje}\n`;
   msg += '\nQuedo en espera de su cotizacion. Muchas gracias!';
 
-  // Vaciar carrito al enviar banquete
-  carrito = [];
-  actualizarCarritoUI();
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
@@ -1293,9 +1290,6 @@ function enviarMensajeContacto() {
   msg += `Mensaje: ${mensaje}\n`;
   msg += '\nMuchas gracias!';
 
-  // Vaciar carrito al contactar
-  carrito = [];
-  actualizarCarritoUI();
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 

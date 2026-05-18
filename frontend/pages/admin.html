@@ -701,7 +701,7 @@ table{min-width:600px;}
       <div class="form-row-3">
         <div class="form-group">
           <label>Horario</label>
-          <input type="text" id="curso-hora" placeholder="9:00 am – 1:00 pm">
+          <input type="time" id="curso-hora" step="900" title="Selecciona la hora de inicio">
         </div>
         <div class="form-group">
           <label>Nivel</label>
@@ -1051,7 +1051,7 @@ function renderCursos(list){
       <td><img class="course-thumb" src="${c.imagen||'https://via.placeholder.com/44x44/f5dde4/7d3248?text=📅'}" alt="${c.titulo}" onerror="this.src='https://via.placeholder.com/44x44/f5dde4/7d3248?text=📅'"></td>
       <td><strong>${c.titulo}</strong><div style="font-size:.72rem;color:var(--text-light)">${c.duracion} · ${c.nivel}</div></td>
       <td>${formatDate(c.fecha)}</td>
-      <td style="font-size:.78rem">${c.hora||'—'}</td>
+      <td style="font-size:.78rem">${formatTimeDisplay(c.hora)||'—'}</td>
       <td><span style="font-size:.78rem">${c.nivel}</span></td>
       <td><strong>${c.precio}</strong></td>
       <td>${estadoBadge(c.estado)}</td>
@@ -1085,6 +1085,34 @@ function openAddModal(){
   document.getElementById('curso-modal').classList.add('open');
 }
 
+function parseCursoHora(value){
+  if(!value) return '';
+  const text = String(value).trim();
+  const regex = /([01]?\d|2[0-3]):([0-5]\d)\s*([AaPp][Mm])?/;
+  const match = text.match(regex);
+  if(!match) return '';
+  let hour = parseInt(match[1], 10);
+  const minute = match[2].padStart(2, '0');
+  const ampm = (match[3] || '').toLowerCase();
+  if(ampm === 'pm' && hour < 12) hour += 12;
+  if(ampm === 'am' && hour === 12) hour = 0;
+  return hour.toString().padStart(2, '0') + ':' + minute;
+}
+
+function formatTimeDisplay(value){
+  if(!value) return '';
+  const text = String(value).trim();
+  if(text.includes('–') || text.includes('-')) return text;
+  const match = text.match(/^(?:([01]?\d|2[0-3]):([0-5]\d))/);
+  if(!match) return text;
+  let hour = parseInt(match[1], 10);
+  const minute = match[2].padStart(2,'0');
+  const ampm = hour >= 12 ? 'pm' : 'am';
+  if(hour === 0) hour = 12;
+  else if(hour > 12) hour -= 12;
+  return hour + ':' + minute + ' ' + ampm;
+}
+
 function openEditCurso(id){
   const c = cursosData.find(x=>x.id===id);
   if(!c) return;
@@ -1097,7 +1125,7 @@ function openEditCurso(id){
   document.getElementById('curso-precio').value = c.precioNum !== undefined
     ? c.precioNum
     : parseFloat(String(c.precio).replace(/[^0-9.]/g,'').replace(/^\./, '')) || '';
-  document.getElementById('curso-hora').value = c.hora;
+  document.getElementById('curso-hora').value = parseCursoHora(c.hora);
   document.getElementById('curso-nivel').value = c.nivel;
   document.getElementById('curso-duracion').value = c.duracion;
   document.getElementById('curso-extras').value = c.extras;
