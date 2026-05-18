@@ -234,13 +234,35 @@ def delete_banquete(id_solicitud):
 @api.get("/dashboard")
 def get_dashboard():
     from models.models import (Curso, Inscripcion, Producto, SolicitudCatering)
+    from sqlalchemy import func
+    from datetime import date, timedelta
+
+    hoy = date.today()
+    inicio_mes    = hoy.replace(day=1)
+    inicio_semana = hoy - timedelta(days=hoy.weekday())
+
+    # Ingresos del mes: solo inscripciones pagadas (precio del curso)
+    ingresos_mes = db.session.query(
+        func.coalesce(func.sum(Curso.precio_curso), 0)
+    ).join(Inscripcion, Inscripcion.id_curso == Curso.id_curso).filter(
+        Inscripcion.estado_pago == "Pagado",
+        func.date(Inscripcion.fecha_inscripcion) >= inicio_mes,
+    ).scalar() or 0
+
+    # ── Inscripciones esta semana ─────────────────────────────────────
+    inscripciones_semana = Inscripcion.query.filter(
+        func.date(Inscripcion.fecha_inscripcion) >= inicio_semana
+    ).count()
+
     return jsonify({
-        "total_cursos"        : Curso.query.filter_by(is_active=True).count(),
-        "total_inscripciones" : Inscripcion.query.count(),
-        "total_productos"     : Producto.query.filter_by(is_active=True).count(),
-        "total_banquetes"     : SolicitudCatering.query.count(),
-        "pendientes_pago"     : Inscripcion.query.filter_by(estado_pago="Pendiente").count(),
-        "banquetes_pendientes": SolicitudCatering.query.filter_by(estado="pendiente").count(),
+        "total_cursos"         : Curso.query.filter_by(is_active=True).count(),
+        "total_inscripciones"  : Inscripcion.query.count(),
+        "inscripciones_semana" : inscripciones_semana,
+        "total_productos"      : Producto.query.filter_by(is_active=True).count(),
+        "total_banquetes"      : SolicitudCatering.query.count(),
+        "pendientes_pago"      : Inscripcion.query.filter_by(estado_pago="Pendiente").count(),
+        "banquetes_pendientes" : SolicitudCatering.query.filter_by(estado="pendiente").count(),
+        "ingresos_mes"         : float(ingresos_mes),
     }), 200
 
 
