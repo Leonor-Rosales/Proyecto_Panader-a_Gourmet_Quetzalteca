@@ -66,7 +66,21 @@ CREATE TABLE inscripcion (
     estado_pago VARCHAR(20) NOT NULL DEFAULT 'Pendiente'
         CHECK (estado_pago IN ('Pendiente', 'Anticipo', 'Pagado')),
     nota_final DECIMAL(5,2) DEFAULT 0 CHECK (nota_final BETWEEN 0 AND 100),
+    estado VARCHAR(20) NOT NULL DEFAULT 'activa'
+        CHECK (estado IN ('activa', 'cancelada')),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_cancelacion TIMESTAMP NULL,
+    fecha_recordatorio_enviado TIMESTAMP NULL,
     CONSTRAINT uq_usuario_curso UNIQUE (id_usuario, id_curso)
+);
+
+CREATE TABLE notificacion_curso (
+    id_notificacion SERIAL PRIMARY KEY,
+    id_curso INT NOT NULL REFERENCES curso(id_curso),
+    id_inscripcion INT NOT NULL REFERENCES inscripcion(id_inscripcion),
+    tipo VARCHAR(40) NOT NULL,
+    fecha_envio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_notificacion_curso_tipo UNIQUE (id_curso, id_inscripcion, tipo)
 );
 
 CREATE TABLE asistencia (
@@ -169,5 +183,10 @@ INSERT INTO categoria (nombre_categoria) VALUES ('Otros');
 -- ══════════════════════════════════════════════════
 -- ALTER TABLE curso    ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
 -- ALTER TABLE producto ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+-- ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS estado VARCHAR(20) NOT NULL DEFAULT 'activa';
+-- ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+-- ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS fecha_cancelacion TIMESTAMP NULL;
+-- ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS fecha_recordatorio_enviado TIMESTAMP NULL;
 -- UPDATE curso    SET is_active = TRUE WHERE is_active IS NULL;
 -- UPDATE producto SET is_active = TRUE WHERE is_active IS NULL;
+-- UPDATE inscripcion SET is_active = TRUE WHERE is_active IS NULL;

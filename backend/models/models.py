@@ -201,6 +201,10 @@ class Inscripcion(db.Model):
     fecha_inscripcion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     estado_pago       = db.Column(db.String(20), default="Pendiente", nullable=False)
     nota_final        = db.Column(db.Numeric(5, 2), default=0)
+    estado            = db.Column(db.String(20), default="activa", nullable=False)
+    is_active         = db.Column(db.Boolean, default=True, nullable=False)
+    fecha_cancelacion = db.Column(db.DateTime)
+    fecha_recordatorio_enviado = db.Column(db.DateTime)
 
     usuario       = db.relationship("Usuario", back_populates="inscripciones")
     curso         = db.relationship("Curso", back_populates="inscripciones")
@@ -221,7 +225,24 @@ class Inscripcion(db.Model):
             "fecha_inscripcion": str(self.fecha_inscripcion),
             "estado_pago"      : self.estado_pago,
             "nota_final"       : float(self.nota_final) if self.nota_final else 0,
+            "estado"           : self.estado,
+            "is_active"        : self.is_active,
+            "fecha_cancelacion": str(self.fecha_cancelacion) if self.fecha_cancelacion else None,
         }
+
+
+class NotificacionCurso(db.Model):
+    __tablename__ = "notificacion_curso"
+
+    id_notificacion = db.Column(db.Integer, primary_key=True)
+    id_curso = db.Column(db.Integer, db.ForeignKey("curso.id_curso"), nullable=False)
+    id_inscripcion = db.Column(db.Integer, db.ForeignKey("inscripcion.id_inscripcion"), nullable=False)
+    tipo = db.Column(db.String(40), nullable=False)
+    fecha_envio = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("id_curso", "id_inscripcion", "tipo", name="uq_notificacion_curso_tipo"),
+    )
 
 
 # ─────────────────────────────────────────
