@@ -5,7 +5,7 @@ load_dotenv()
 
 class Config:
     SQLALCHEMY_DATABASE_URI = (
-        f"postgresql://{os.getenv('DB_USER')}:"
+        f"mysql+pymysql://{os.getenv('DB_USER')}:"
         f"{os.getenv('DB_PASSWORD')}@"
         f"{os.getenv('DB_HOST')}:"
         f"{os.getenv('DB_PORT')}/"

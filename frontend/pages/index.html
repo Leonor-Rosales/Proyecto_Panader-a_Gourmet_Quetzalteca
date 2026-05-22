@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panadería Gourmet Quetzalteca</title>
-<!-- Google Sign-In SDK -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -29,7 +28,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .drawer-overlay.open{opacity:1;visibility:visible}
 .dropdown-menu{position:fixed;top:0;left:0;bottom:0;width:240px;background:#fff;box-shadow:4px 0 24px rgba(120,40,60,.18);opacity:0;visibility:hidden;transform:translateX(-100%);transition:all .28s cubic-bezier(.4,0,.2,1);z-index:150;display:flex;flex-direction:column;overflow:hidden}
 .dropdown-menu.open{opacity:1;visibility:visible;transform:translateX(0)}
-.drawer-header{background:linear-gradient(135deg,#d08090,#7d3248);padding:28px 20px 22px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.drawer-header{background:var(--dark-pink);padding:28px 20px 22px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .drawer-header-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:#fff;line-height:1.2}
 .drawer-header-sub{font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px}
 .drawer-close{margin-left:auto;background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:6px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
@@ -96,12 +95,11 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .page{display:none}
 .page.active{display:block}
 
-.hero{position:relative;min-height:420px;background:linear-gradient(135deg,#d08090,#8a3050 50%,#5c1f35);display:flex;align-items:center;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 80%,rgba(255,220,180,.25) 0,transparent 35%),radial-gradient(circle at 80% 20%,rgba(255,180,200,.2) 0,transparent 40%)}
+.hero{position:relative;min-height:420px;background:var(--dark-pink);display:flex;align-items:center;overflow:hidden}
 .sparkles{position:absolute;inset:0;pointer-events:none}
 .sparkles span{position:absolute;border-radius:50%;background:rgba(255,220,150,.6);animation:sparkle 3s ease-in-out infinite}
 @keyframes sparkle{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.9;transform:scale(1.4)}}
-.hero-content{position:relative;z-index:2;padding:60px 5% 80px 7%;max-width:52%;color:#fff}
+.hero-content{position:relative;z-index:2;padding:60px 5% 60px 7%;max-width:52%;color:#fff}
 .hero-content h1{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:400;line-height:1.15;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,.25)}
 .hero-content h1 em{font-style:italic;font-size:2.6rem;font-weight:700;display:block;line-height:1.1}
 .hero-content h1 .subtitle-line{font-size:2.4rem;font-weight:700;font-style:italic}
@@ -112,16 +110,14 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .btn-outline{background:transparent;color:#fff;padding:10px 26px;border:1.5px solid rgba(255,255,255,.75);border-radius:5px;font-size:.88rem;font-weight:400;cursor:pointer;font-family:'Jost',sans-serif;transition:background .2s,border-color .2s}
 .btn-outline:hover{background:rgba(255,255,255,.12);border-color:#fff}
 .hero-img-side{position:absolute;right:0;top:0;bottom:0;width:50%;background:url('imagenes pagina web/imagen_chef_portada.jpg') center/cover no-repeat;mask-image:linear-gradient(to right,transparent,black 30%);-webkit-mask-image:linear-gradient(to right,transparent,black 30%)}
-.hero-wave{display:block;width:100%;margin-top:-2px}
-.hero-wave svg{display:block;width:100%;height:60px}
 
-.categories{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:10px 5% 45px}
+.categories{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:45px 5%}
 .card{position:relative;border-radius:10px;overflow:hidden;height:240px;cursor:pointer;box-shadow:0 8px 24px rgba(100,40,60,.12);transition:transform .25s,box-shadow .25s}
 .card:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(100,40,60,.2)}
 .card-bg-fallback{width:100%;height:100%}
 .card-bg-fallback img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
 .card:hover .card-bg-fallback img{transform:scale(1.04)}
-.card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(90,20,40,.88) 0%,rgba(90,20,40,.3) 50%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:22px 20px;text-align:center;color:#fff}
+.card-overlay{position:absolute;inset:0;background:rgba(90,20,40,.6);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:22px 20px;text-align:center;color:#fff}
 .card-overlay h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
 .btn-white-sm{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.8);padding:6px 24px;border-radius:4px;font-size:.78rem;cursor:pointer;font-family:'Jost',sans-serif;transition:background .2s}
 .btn-white-sm:hover{background:rgba(255,255,255,.18)}
@@ -145,24 +141,20 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .btn-reserve:hover{background:var(--mid-pink);transform:translateY(-1px)}
 
 .banquetes-strip{display:flex;align-items:stretch;min-height:220px;margin:0 0 50px;overflow:hidden}
-.banquetes-content{background:linear-gradient(135deg,#fce8ef,#f5d5e0);padding:45px 6%;flex:0 0 42%;display:flex;flex-direction:column;justify-content:center}
+.banquetes-content{background:var(--blush);padding:45px 6%;flex:0 0 42%;display:flex;flex-direction:column;justify-content:center}
 .banquetes-content h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-style:italic;color:var(--mid-pink);margin-bottom:10px}
 .banquetes-content p{font-size:.85rem;color:var(--text);line-height:1.7;margin-bottom:22px}
 .btn-cotizar{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;border:none;padding:11px 24px;border-radius:5px;font-size:.85rem;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif;align-self:flex-start;text-decoration:none;transition:background .2s}
 .btn-cotizar:hover{background:var(--gold-light)}
 .banquetes-img{flex:1;background:url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80') center/cover no-repeat;position:relative}
-.banquetes-img::before{content:'';position:absolute;left:0;top:0;bottom:0;width:80px;background:linear-gradient(to right,#f5d5e0,transparent)}
 
-.page-hero{position:relative;min-height:200px;background:linear-gradient(135deg,#d08090,#8a3050 50%,#5c1f35);display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
-.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 80%,rgba(255,220,180,.2) 0,transparent 40%),radial-gradient(circle at 80% 20%,rgba(255,180,200,.15) 0,transparent 40%)}
-.page-hero-content{position:relative;z-index:2;padding:50px 20px 70px;color:#fff}
+.page-hero{position:relative;min-height:200px;background:var(--dark-pink);display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.page-hero-content{position:relative;z-index:2;padding:50px 20px;color:#fff}
 .page-hero-content h1{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:400;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.3)}
 .page-hero-content h1 em{font-style:italic;color:#f5d0db}
 .page-hero-content p{font-size:.9rem;font-weight:300;letter-spacing:1px;margin-top:12px;opacity:.9}
-.page-wave{display:block;width:100%;margin-top:-2px}
-.page-wave svg{display:block;width:100%;height:60px}
 
-.pasteleria-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:0 5% 50px}
+.pasteleria-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:40px 5% 50px}
 .pastel-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(100,40,60,.1);transition:transform .25s,box-shadow .25s}
 .pastel-card:hover{transform:translateY(-5px);box-shadow:0 14px 36px rgba(100,40,60,.18)}
 .pastel-img{height:190px;overflow:hidden}
@@ -175,7 +167,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .pasteleria-cta{text-align:center;padding:10px 5% 60px}
 .pasteleria-cta p{font-size:.9rem;color:var(--text-light);margin-bottom:20px;max-width:500px;margin-left:auto;margin-right:auto}
 
-.cursos-intro{text-align:center;padding:10px 5% 30px}
+.cursos-intro{text-align:center;padding:40px 5% 30px}
 .cursos-intro p{font-size:.9rem;color:var(--text-light);max-width:600px;margin:0 auto;line-height:1.7}
 .cal-wrapper{max-width:900px;margin:0 auto;padding:0 5% 50px}
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
@@ -192,9 +184,9 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .cal-day.today{background:#fff5f8}
 .cal-day-num{font-size:.82rem;font-weight:600;color:var(--text-light);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-family:'Jost',sans-serif}
 .cal-day.today .cal-day-num{background:var(--dark-pink);color:#fff}
-.cal-event{background:linear-gradient(135deg,var(--dark-pink),var(--mid-pink));color:#fff;font-size:.63rem;padding:3px 6px;border-radius:4px;margin-top:4px;cursor:pointer;line-height:1.3;font-family:'Jost',sans-serif;transition:opacity .15s;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-event{background:var(--mid-pink);color:#fff;font-size:.63rem;padding:3px 6px;border-radius:4px;margin-top:4px;cursor:pointer;line-height:1.3;font-family:'Jost',sans-serif;transition:opacity .15s;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cal-event:hover{opacity:.82;transform:scale(1.02)}
-.cal-event.gold{background:linear-gradient(135deg,var(--gold),var(--gold-light))}
+.cal-event.gold{background:var(--gold)}
 
 .curso-detalle{max-width:760px;margin:0 auto;padding:30px 5% 60px}
 .curso-detalle-back{display:inline-flex;align-items:center;gap:8px;color:var(--dark-pink);font-size:.85rem;font-weight:500;cursor:pointer;margin-bottom:24px;background:none;border:none;font-family:'Jost',sans-serif;transition:gap .2s}
@@ -211,8 +203,8 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .btn-inscribir-lg{background:var(--dark-pink);color:#fff;border:none;padding:14px 40px;border-radius:8px;font-size:1rem;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif;transition:background .2s,transform .15s}
 .btn-inscribir-lg:hover{background:var(--mid-pink);transform:translateY(-1px)}
 
-.banq-hero-strip{display:flex;margin:0 5% 50px;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(100,40,60,.15);min-height:320px}
-.banq-text-side{background:linear-gradient(145deg,#fce8ef,#f0ccd8);padding:50px 40px;flex:0 0 45%;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.banq-hero-strip{display:flex;margin:40px 5% 50px;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(100,40,60,.15);min-height:320px}
+.banq-text-side{background:var(--blush);padding:50px 40px;flex:0 0 45%;display:flex;flex-direction:column;justify-content:center;gap:16px}
 .banq-text-side h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-style:italic;color:var(--mid-pink)}
 .banq-text-side p{font-size:.87rem;line-height:1.7;color:var(--text)}
 .banq-img-side{flex:1;background:url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=900&q=80') center/cover}
@@ -240,7 +232,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .btn-submit{width:100%;background:var(--dark-pink);color:#fff;border:none;padding:14px;border-radius:6px;font-size:.92rem;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif;transition:background .2s,transform .15s;margin-top:6px}
 .btn-submit:hover{background:var(--mid-pink);transform:translateY(-1px)}
 
-.contacto-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:0 5% 60px;max-width:980px;margin:0 auto}
+.contacto-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:40px 5% 60px;max-width:980px;margin:0 auto}
 .contacto-info h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:14px;color:var(--text)}
 .contacto-info p{font-size:.87rem;line-height:1.7;color:var(--text-light);margin-bottom:28px}
 .contact-item{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
@@ -254,7 +246,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .contacto-form-wrap{background:#fff;border-radius:14px;padding:36px;box-shadow:0 6px 28px rgba(100,40,60,.1)}
 .contacto-form-wrap h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;margin-bottom:22px;color:var(--dark-pink)}
 
-.footer{background:linear-gradient(135deg,#c0607a,#7d3248 50%,#4a1a2c);color:#fff;padding:22px 5%}
+.footer{background:var(--dark-pink);color:#fff;padding:22px 5%}
 .footer-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.2);flex-wrap:wrap;gap:12px}
 .footer-contact{display:flex;align-items:center;gap:6px;font-size:.82rem}
 .footer-contact .label{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-right:8px}
@@ -270,7 +262,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 /* PERFIL / EDITAR CUENTA */
 .perfil-wrap{max-width:600px;margin:0 auto;padding:30px 5% 60px}
 .perfil-card{background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(100,40,60,.12);overflow:hidden}
-.perfil-card-header{background:linear-gradient(135deg,#d08090,#7d3248);padding:36px 36px 28px;display:flex;align-items:center;gap:20px;color:#fff}
+.perfil-card-header{background:var(--dark-pink);padding:36px 36px 28px;display:flex;align-items:center;gap:20px;color:#fff}
 .perfil-avatar-grande{width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;font-family:'Cormorant Garamond',serif;flex-shrink:0;border:3px solid rgba(255,255,255,.5)}
 .perfil-header-info h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .perfil-header-info p{font-size:.78rem;opacity:.8}
@@ -324,7 +316,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .carrito-btn-float.oculto{display:none}
 .carrito-panel{position:fixed;top:0;right:0;bottom:0;width:360px;max-width:95vw;background:#fff;z-index:400;box-shadow:-6px 0 30px rgba(100,30,50,.18);display:flex;flex-direction:column;transform:translateX(110%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .carrito-panel.open{transform:translateX(0)}
-.carrito-panel-header{background:linear-gradient(135deg,#d08090,#7d3248);color:#fff;padding:22px 24px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.carrito-panel-header{background:var(--dark-pink);color:#fff;padding:22px 24px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .carrito-panel-header h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem}
 .carrito-close{background:rgba(255,255,255,.18);border:none;color:#fff;width:30px;height:30px;border-radius:6px;font-size:1.2rem;cursor:pointer;line-height:1}
 .carrito-items{flex:1;overflow-y:auto;padding:16px}
@@ -366,11 +358,12 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
 .btn-dir-confirm{flex:2;background:#25D366;color:#fff;border:none;padding:11px;border-radius:8px;font-family:'Jost',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-dir-confirm:disabled{background:#aaa;cursor:not-allowed}
 .modal-dir-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-light)}
+
+#admin-preview-banner {background: #7a1f3d !important;}
 </style>
 </head>
 <body>
 
-<!-- ══ CARRITO PANEL ══ -->
 <div class="carrito-overlay" id="carritoOverlay" onclick="cerrarCarrito()"></div>
 <button class="carrito-btn-float oculto" id="carritoFloat" onclick="abrirCarrito()">
   🛒 Mi Pedido <span class="carrito-badge" id="carritoBadge">0</span>
@@ -392,7 +385,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   </div>
 </div>
 
-<!-- ══ MODAL DIRECCIÓN DE ENTREGA ══ -->
 <div class="modal-dir-overlay" id="modalDirOverlay">
   <div class="modal-dir-box">
     <button class="modal-dir-close" onclick="cerrarModalDir()">×</button>
@@ -417,7 +409,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   </div>
 </div>
 
-<!-- ══ LOGIN MODAL ══ -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">×</button>
@@ -436,7 +427,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       <div class="modal-divider">o continúa con</div>
       <button class="btn-submit-modal btn-google-login" onclick="handleGoogleLogin()" id="googleSignInBtn" type="button">
         <span style="display:flex;align-items:center;justify-content:center;gap:10px">
-          <!-- Logo oficial Google 2023 (multicolor) -->
           <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -448,7 +438,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
       </button>
     </div>
     <div class="modal-form" id="tab-register">
-      <!-- Formulario de registro -->
       <div id="register-form-content">
         <div id="register-message" class="auth-message"></div>
         <div class="form-group"><label>Nombre completo</label><input type="text" id="register-name" placeholder="Tu nombre"></div>
@@ -458,13 +447,11 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
         <div class="form-group"><label>Confirmar contraseña</label><input type="password" id="register-confirm" placeholder="Repite tu contraseña"></div>
         <button class="btn-submit-modal" id="btn-crear-cuenta" onclick="handleRegister()">Crear Cuenta ›</button>
       </div>
-      <!-- Panel de verificación pendiente (se muestra después de enviar) -->
       <div id="register-verify-panel" style="display:none;text-align:center;padding:4px 0">
         <div style="font-size:3rem;margin-bottom:14px">📧</div>
         <h3 style="color:var(--dark-pink);font-family:'Cormorant Garamond',serif;font-style:italic;margin:0 0 10px;font-size:1.3rem">
           ¡Un paso más!
         </h3>
-        <!-- Aviso amarillo prominente -->
         <div style="background:#fff8e1;border:1.5px solid #f9c02a;border-radius:8px;padding:12px 14px;margin-bottom:14px;text-align:left">
           <p style="margin:0;font-size:.84rem;color:#7a5800;font-weight:600;line-height:1.5">
             ⚠️ Tu cuenta <strong>aún no está creada</strong>.
@@ -487,7 +474,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   </div>
 </div>
 
-<!-- ══ DRAWER ══ -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeMenu()"></div>
 <div class="dropdown-menu" id="dropdownMenu">
   <div class="drawer-header">
@@ -507,7 +493,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   </div>
 </div>
 
-<!-- ══ NAVBAR ══ -->
 <header class="navbar">
   <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMenu()">
     <span></span><span></span><span></span>
@@ -520,7 +505,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   </div>
 </header>
 
-<!-- ════ INICIO ════ -->
 <div id="page-inicio" class="page active">
   <section class="hero">
     <div class="sparkles">
@@ -540,11 +524,11 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
     </div>
     <div class="hero-img-side"></div>
   </section>
-  <div class="hero-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0 C360,60 1080,60 1440,0 L1440,0 L0,0 Z" fill="#8a3050"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,0 C1080,60 360,60 0,0 Z" fill="#7d3248" opacity="0.4"/><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/></svg></div>
+  
   <section class="categories">
     <div class="card" onclick="showPage('pasteleria')">
       <div class="card-bg-fallback"><img src="imagenes pagina web/imagen_pie_de_limon.jpeg" alt="Pastelería"></div>
-      <div class="card-overlay" style="background:linear-gradient(to top,rgba(80,10,40,.85),rgba(140,40,80,.4) 60%,transparent)"><h3 style="font-style:italic;letter-spacing:1px;color:#f5e0e8"> Pastelería </h3><button class="btn-white-sm">Ver Más</button></div>
+      <div class="card-overlay"><h3 style="font-style:italic;letter-spacing:1px;color:#f5e0e8"> Pastelería </h3><button class="btn-white-sm">Ver Más</button></div>
     </div>
     <div class="card" onclick="showPage('cursos')">
       <div class="card-bg-fallback"><img src="imagenes pagina web/imagen_brownies.jpeg" alt="Cursos"></div>
@@ -570,14 +554,12 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
     </div>
     <div class="banquetes-img"></div>
   </div>
-  <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div><div class="footer-phone"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg> +502 1234 5678</div></div><div class="footer-socials"><a class="social-icon" href="https://facebook.com/panaderiaGourmetQuetzalteca" target="_blank" title="Facebook" style="text-decoration:none;color:inherit">f</a><a class="social-icon" href="https://instagram.com/panaderiaGourmetQuetzalteca" target="_blank" title="Instagram" style="text-decoration:none;color:inherit">in</a><a class="social-icon" href="#" onclick="window.open('https://wa.me/'+WA_NUMBER,'_blank');return false" title="WhatsApp" style="text-decoration:none;color:inherit">💬</a></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
+  <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div><div class="footer-phone"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79( 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.7A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg> +502 1234 5678</div></div><div class="footer-socials"><a class="social-icon" href="https://facebook.com/panaderiaGourmetQuetzalteca" target="_blank" title="Facebook" style="text-decoration:none;color:inherit">f</a><a class="social-icon" href="https://instagram.com/panaderiaGourmetQuetzalteca" target="_blank" title="Instagram" style="text-decoration:none;color:inherit">in</a><a class="social-icon" href="#" onclick="window.open('https://wa.me/'+WA_NUMBER,'_blank');return false" title="WhatsApp" style="text-decoration:none;color:inherit">💬</a></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></header>
 </div>
 
-<!-- ════ PASTELERÍA ════ -->
 <div id="page-pasteleria" class="page">
   <section class="page-hero"><div class="sparkles"><span style="width:5px;height:5px;top:30%;left:8%;animation-delay:.3s"></span></div><div class="page-hero-content"><h1>✦ <em>Pastelería</em> Artesanal ✦</h1><p>Creaciones únicas para tus momentos más especiales</p></div></section>
-  <div class="page-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,20 C1080,70 360,70 0,20 Z" fill="#8a3050" opacity="0.35"/></svg></div>
-  <section style="padding:20px 5% 10px;text-align:center"><h2 class="section-title">Nuestras Creaciones</h2></section>
+  <section style="padding:40px 5% 10px;text-align:center"><h2 class="section-title">Nuestras Creaciones</h2></section>
   <div class="pasteleria-grid" id="pasteleria-grid-index">
     <div class="pastel-card"><div class="pastel-img"><img src="https://images.unsplash.com/photo-1587248720327-8eb72564be1e?w=500&q=75" alt="Bodas"></div><div class="pastel-info"><h3>Pastel de Bodas</h3><p>Diseño personalizado, varios pisos y sabores a elegir.</p><div class="pastel-card-actions"><div class="pastel-price">Desde Q.800</div><button class="btn-add-cart" onclick="agregarAlCarrito('Pastel de Bodas',800,1)">+ Añadir</button></div></div></div>
     <div class="pastel-card"><div class="pastel-img"><img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&q=75" alt="Cumpleaños"></div><div class="pastel-info"><h3>Torta de Cumpleaños</h3><p>Temáticas especiales para niños y adultos.</p><div class="pastel-card-actions"><div class="pastel-price">Desde Q.350</div><button class="btn-add-cart" onclick="agregarAlCarrito('Torta de Cumpleaños',350,2)">+ Añadir</button></div></div></div>
@@ -590,10 +572,8 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
 </div>
 
-<!-- ════ CURSOS ════ -->
 <div id="page-cursos" class="page">
   <section class="page-hero"><div class="sparkles"><span style="width:6px;height:6px;top:20%;left:6%;animation-delay:.2s"></span></div><div class="page-hero-content"><h1>Nuestros <em>Cursos</em> y Talleres</h1><p>Haz clic en un curso del calendario para ver todos los detalles</p></div></section>
-  <div class="page-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,20 C1080,70 360,70 0,20 Z" fill="#8a3050" opacity="0.35"/></svg></div>
   <div class="cursos-intro"><h2 class="section-title">Calendario de Cursos</h2><p>Selecciona el mes que deseas explorar. Haz clic en cualquier curso para ver su descripción completa, horario y precio.</p></div>
   <div class="cal-wrapper">
     <div class="cal-nav"><button class="cal-btn" onclick="calPrev()">&#8592;</button><h3 id="cal-month-label"></h3><button class="cal-btn" onclick="calNext()">&#8594;</button></div>
@@ -604,7 +584,6 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
 </div>
 
-<!-- ════ DETALLE CURSO ════ -->
 <div id="page-detalle-curso" class="page">
   <div class="curso-detalle">
     <button class="curso-detalle-back" onclick="volverDesdeDetalle()">&#8592; Volver al calendario</button>
@@ -628,16 +607,14 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   <footer class="footer" style="margin-top:20px"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a></nav></footer>
 </div>
 
-<!-- ════ BANQUETES ════ -->
 <div id="page-banquetes" class="page">
   <section class="page-hero"><div class="sparkles"><span style="width:6px;height:6px;top:22%;left:9%;animation-delay:.1s"></span></div><div class="page-hero-content"><h1>Servicio de <em>Banquetes</em></h1><p>Catering elegante para bodas, eventos corporativos y celebraciones</p></div></section>
-  <div class="page-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,20 C1080,70 360,70 0,20 Z" fill="#8a3050" opacity="0.35"/></svg></div>
   <div class="banq-hero-strip"><div class="banq-text-side"><h2>Servicio de Banquetes</h2><p>Ofrecemos catering personalizado para todo tipo de eventos. Desde íntimas reuniones familiares hasta grandes celebraciones.</p><button class="btn-cotizar" onclick="document.getElementById('cotizar-form').scrollIntoView({behavior:'smooth'})">Solicitar Cotización ›</button></div><div class="banq-img-side"></div></div>
   <section style="padding:0 5% 16px;text-align:center"><h2 class="section-title">Nuestros Servicios</h2></section>
   <div class="banq-services">
-    <div class="banq-service-card"><div class="banq-service-img"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&q=75" alt="Bodas"></div><div class="banq-service-info"><h3>Bodas</h3><p>Menús personalizados para el día más especial.</p></div></div>
-    <div class="banq-service-card"><div class="banq-service-img"><img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=500&q=75" alt="Corporativos"></div><div class="banq-service-info"><h3>Eventos Corporativos</h3><p>Coffee breaks, almuerzos ejecutivos y cenas de gala.</p></div></div>
-    <div class="banq-service-card"><div class="banq-service-img"><img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=75" alt="Celebraciones"></div><div class="banq-service-info"><h3>Celebraciones Privadas</h3><p>Quinceaños, cumpleaños, bautizos y reuniones familiares.</p></div></div>
+    <div class="banq-service-card"><div class="banq-service-img"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&q=70" alt="Bodas"></div><div class="banq-service-info"><h3>Bodas</h3><p>Menús personalizados para el día más especial.</p></div></div>
+    <div class="banq-service-card"><div class="banq-service-img"><img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=500&q=70" alt="Corporativos"></div><div class="banq-service-info"><h3>Eventos Corporativos</h3><p>Coffee breaks, almuerzos ejecutivos y cenas de gala.</p></div></div>
+    <div class="banq-service-card"><div class="banq-service-img"><img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=70" alt="Celebraciones"></div><div class="banq-service-info"><h3>Celebraciones Privadas</h3><p>Quinceaños, cumpleaños, bautizos y reuniones familiares.</p></div></div>
   </div>
   <div class="banq-form-section" id="cotizar-form">
     <h2>Solicitar Cotización</h2>
@@ -654,11 +631,9 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
 </div>
 
-<!-- ════ CONTACTO ════ -->
 <div id="page-contacto" class="page">
   <section class="page-hero"><div class="sparkles"><span style="width:5px;height:5px;top:28%;left:7%;animation-delay:.4s"></span></div><div class="page-hero-content"><h1><em>Contáctanos</em></h1><p>Estamos para ayudarte en lo que necesites</p></div></section>
-  <div class="page-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,20 C1080,70 360,70 0,20 Z" fill="#8a3050" opacity="0.35"/></svg></div>
-  <div class="contacto-grid" style="padding-top:20px">
+  <div class="contacto-grid">
     <div class="contacto-info">
       <h2>¡Hablemos!</h2>
       <p>Nos encantaría escucharte. Ya sea para consultas sobre cursos, pedidos de pastelería o cotizaciones de banquetes.</p>
@@ -687,10 +662,8 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('pasteleria')">Pastelería</a><a onclick="showPage('cursos')">Cursos</a><a onclick="showPage('banquetes')">Banquetes</a><a onclick="showPage('contacto')">Contacto</a></nav></footer>
 </div>
 
-<!-- ════ EDITAR CUENTA ════ -->
 <div id="page-editar-cuenta" class="page">
   <section class="page-hero"><div class="page-hero-content"><h1><em>Mi Cuenta</em></h1><p>Administra tu información personal</p></div></section>
-  <div class="page-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,20 C1080,70 360,70 0,20 Z" fill="#8a3050" opacity="0.35"/></svg></div>
   <div class="perfil-wrap">
     <div class="perfil-card">
       <div class="perfil-card-header">
@@ -717,13 +690,11 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
   <footer class="footer"><div class="footer-top"><div class="footer-contact"><span class="label">Contáctanos</span></div><div class="footer-center-group"><div class="footer-email"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg> info@tallergourmet.com</div></div></div><nav class="footer-bottom"><a onclick="showPage('inicio')">Inicio</a><a onclick="showPage('cursos')">Cursos</a><a onclick="abrirMisInscripciones()">Mis Inscripciones</a></nav></footer>
 </div>
 
-<!-- ════ MIS INSCRIPCIONES ════ -->
 <div id="page-mis-inscripciones" class="page">
   <section class="page-hero"><div class="page-hero-content"><h1>Mis <em>Inscripciones</em></h1><p>Todos los cursos en los que estás inscrito</p></div></section>
-  <div class="page-wave"><svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C360,70 1080,70 1440,20 L1440,60 L0,60 Z" fill="#fdf0f3"/><path d="M0,10 C360,65 1080,65 1440,10 L1440,20 C1080,70 360,70 0,20 Z" fill="#8a3050" opacity="0.35"/></svg></div>
   <div class="inscripciones-wrap">
     <div id="inscripciones-lista">
-      <div class="inscripciones-vacio"><p style="font-size:2rem">📋</p><p>Cargando inscripciones...</p></div>
+      <div class="inscripciones-vacio"><p style="font-size:2rem">⏳</p><p>Cargando inscripciones...</p></div>
     </div>
     <div style="text-align:center;margin-top:30px">
       <button class="btn-reserve" onclick="showPage('cursos')">Ver Cursos Disponibles ›</button>
@@ -739,7 +710,7 @@ window.CURSOS = [
   {id:3,titulo:'Cocina Italiana',fecha:'2026-05-22',hora:'10:00 am – 2:00 pm',nivel:'Intermedio',duracion:'4 horas',extras:'Cena incluida',precio:'Q.300',descripcion:'Un recorrido por los sabores de Italia. Prepararás pasta fresca, risotto cremoso y tiramisú auténtico.',imagen:'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80'},
   {id:4,titulo:'Decoración de Pasteles',fecha:'2026-05-29',hora:'9:00 am – 12:00 pm',nivel:'Avanzado',duracion:'3 horas',extras:'Lleva tu pastel',precio:'Q.350',descripcion:'Taller intensivo de decoración: fondant, buttercream artístico, flores de azúcar y técnicas de alisado profesional.',imagen:'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&q=80'},
   {id:5,titulo:'Macarons Franceses',fecha:'2026-06-07',hora:'10:00 am – 1:00 pm',nivel:'Intermedio',duracion:'3 horas',extras:'Materiales incluidos',precio:'Q.280',descripcion:'Descifra los secretos de los macarons perfectos: punto de merengue, macaronage y rellenos de ganache.',imagen:'https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=800&q=80'},
-  {id:6,titulo:'Cheesecake Artesanal',fecha:'2026-06-14',hora:'2:00 pm – 5:00 pm',nivel:'Principiantes',duracion:'3 horas',extras:'Materiales incluidos',precio:'Q.220',descripcion:'Aprende a preparar cheesecakes horneados y sin horno, con variedad de toppings de temporada.',imagen:'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=800&q=80'}
+  {id:6,titulo:'Cheesecake Artesanal',fecha:'2026-06-14',hora:'2:00 pm – 5:00 pm',nivel:'Principiantes',duracion:'3 horas',extras:'Materiales incluidos',precio:'Q.220',descripcion:'Aprende a preparar cheesecakes horneados y sin horno, con variedad de toppings de temporada.',imagen:'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=500&q=80'}
 ];
 var CURSOS = window.CURSOS;
 var calYear, calMonth, returnPage = 'cursos';
@@ -860,7 +831,6 @@ async function handleRegister(){
     const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,telefono,password:pass})});
     const data=await res.json();
     if(res.ok){
-      // Mostrar panel de verificación pendiente
       document.getElementById('register-form-content').style.display='none';
       const panel=document.getElementById('register-verify-panel');
       const msg=document.getElementById('verify-email-msg');
@@ -884,11 +854,8 @@ function mostrarFormRegistro(){
   clearMsg('register-message');
 }
 
-// ── Google OAuth con Google Sign-In (GSI) ──
-// Usa popup OAuth2 — no necesita redirect_uri registrada aparte
 const GOOGLE_CLIENT_ID = '576804066356-r7ldhe89ibl4g3qu5g1npt84mn57dcgl.apps.googleusercontent.com';
 
-// Inicializar GSI una sola vez cuando cargue la página
 window.addEventListener('load', function(){
   if(typeof google === 'undefined' || !google.accounts) return;
   google.accounts.id.initialize({
@@ -904,7 +871,6 @@ function handleGoogleLogin(){
     showMsg('login-message','Google Sign-In no está disponible. Verifica tu conexión.','error');
     return;
   }
-  // Usar popup OAuth2 — este flujo NO necesita redirect_uri
   const client = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
     scope    : 'openid email profile',
@@ -913,14 +879,12 @@ function handleGoogleLogin(){
         showMsg('login-message','Cancelado o error con Google.','error');
         return;
       }
-      // Obtener id_token usando el access_token
       try{
         const infoRes = await fetch(
           'https://www.googleapis.com/oauth2/v3/userinfo',
           { headers: { Authorization: 'Bearer ' + tokenResponse.access_token } }
         );
         const info = await infoRes.json();
-        // Mandar al backend directamente con los datos del usuario
         const res = await fetch('/api/auth/google-userinfo', {
           method : 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -951,7 +915,6 @@ function handleGoogleLogin(){
 }
 
 async function _onGoogleCredential(response){
-  // Callback del One Tap (si aparece automáticamente)
   try{
     const res = await fetch('/api/auth/google',{
       method : 'POST',
@@ -973,28 +936,6 @@ async function _onGoogleCredential(response){
   } catch { showMsg('login-message','Error de conexión con Google.','error'); }
 }
 
-async function _onGoogleCredential(response){
-  try{
-    const res=await fetch('/api/auth/google',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({credential:response.credential})
-    });
-    const data=await res.json();
-    if(res.ok){
-      sessionStorage.setItem('usuario_sesion',JSON.stringify(data.usuario));
-      showMsg('login-message','¡Bienvenido con Google! Redirigiendo…','success');
-      actualizarNavAuth();
-      setTimeout(()=>{
-        if(data.usuario.id_rol===2){window.location.href='/admin';}
-        else{closeModal();clearMsg('login-message');}
-      },1200);
-    } else {
-      showMsg('login-message',data.message||'Error al iniciar con Google.','error');
-    }
-  }catch{showMsg('login-message','Error de conexión con Google.','error');}
-}
-
 async function handleInscripcion(){
   const usuario = requireSesion('cursos');
   if (!usuario) return;
@@ -1011,7 +952,6 @@ async function handleInscripcion(){
     });
     const data = await res.json();
     if (res.ok) {
-      // Mostrar aviso verde dentro de la vista de detalle, no alert()
       const detalle = document.getElementById('page-curso-detalle') || document.body;
       const aviso   = document.createElement('div');
       aviso.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a7a3c;color:#fff;padding:12px 28px;border-radius:10px;font-size:.9rem;font-weight:600;z-index:999;box-shadow:0 6px 20px rgba(0,0,0,.2)';
@@ -1028,9 +968,7 @@ async function handleInscripcion(){
   }
 }
 
-// ── CARRITO ──
 var carrito = [];
-// ── Verificar sesión activa, abre modal si no hay ──
 function requireSesion(accion) {
   const u = JSON.parse(sessionStorage.getItem('usuario_sesion') || 'null');
   if (!u) {
@@ -1040,7 +978,6 @@ function requireSesion(accion) {
       cursos    : 'inscribirte a un curso',
     };
     if (typeof openModal === 'function') openModal();
-    // Mostrar aviso encima del modal
     const box = document.getElementById('loginModal');
     if (box) {
       const aviso = box.querySelector('.modal-box');
@@ -1059,13 +996,12 @@ function requireSesion(accion) {
   return u;
 }
 
-// Número WA cargado desde la BD al iniciar
 let WA_NUMBER = '50212345678';
 async function cargarWaNumber() {
   try {
     const r = await fetch('/api/config/whatsapp_numero');
     if (r.ok) { const d = await r.json(); WA_NUMBER = d.valor; }
-  } catch(e) { /* usa el default */ }
+  } catch(e) { }
 }
 cargarWaNumber();
 
@@ -1125,11 +1061,8 @@ function cerrarCarrito() {
   document.body.style.overflow = '';
 }
 
-// ── MODAL DIRECCIÓN ──────────────────────────────────────
 function finalizarPedidoWA() {
   if (carrito.length === 0) { alert('Tu carrito está vacío.'); return; }
-
-  // Verificar sesión — obligatorio para hacer pedido
   const usuario = JSON.parse(sessionStorage.getItem('usuario_sesion') || 'null');
   if (!usuario) {
     openModal();
@@ -1149,7 +1082,6 @@ function finalizarPedidoWA() {
     return;
   }
 
-  // Mostrar info de sesión en el modal de dirección
   const infoEl = document.getElementById('dirSesionInfo');
   infoEl.textContent = `✅ Sesión activa: ${usuario.nombre_completo}`;
   infoEl.className = 'modal-dir-sesion visible';
@@ -1157,7 +1089,6 @@ function finalizarPedidoWA() {
   infoEl.style.background = '#edfbf3';
   infoEl.style.borderColor = '#9de0bb';
 
-  // Limpiar campos y abrir modal
   document.getElementById('dirInput').value = '';
   document.getElementById('dirReferencia').value = '';
   document.getElementById('modalDirOverlay').classList.add('open');
@@ -1188,10 +1119,8 @@ async function confirmarDireccion() {
   btn.textContent = 'Enviando…';
 
   cerrarModalDir();
-
   let waUrl = null;
 
-  // Con sesión: guardar en BD primero
   try {
     const res  = await fetch('/api/pedidos', {
       method : 'POST',
@@ -1203,10 +1132,8 @@ async function confirmarDireccion() {
       })
     });
     const data = await res.json();
-    console.log('[Pedido] status:', res.status, data);
     waUrl = res.ok ? data.whatsapp_url : _buildWaMsg(usuario.nombre_completo, ubicacion);
   } catch (err) {
-    console.error('[Pedido] error:', err);
     waUrl = _buildWaMsg(usuario.nombre_completo, ubicacion);
   }
 
@@ -1216,7 +1143,6 @@ async function confirmarDireccion() {
   btn.disabled = false;
   btn.innerHTML = '✅ Confirmar pedido';
 
-  // Abrir WhatsApp — aquí ya no hay await pendiente, window.open funciona
   window.open(waUrl, '_blank');
 }
 
@@ -1228,9 +1154,7 @@ function _buildWaMsg(nombre, ubicacion) {
   return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
 
-// ── CATERING / BANQUETES → WHATSAPP ──
 function enviarCotizacionWA() {
-  // ── Requiere sesión ──
   const usuario = requireSesion('banquetes');
   if (!usuario) return;
 
@@ -1261,7 +1185,6 @@ function enviarCotizacionWA() {
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-// ── CONTACTO → WhatsApp ───────────────────────────────────
 function enviarMensajeContacto() {
   const usuario = requireSesion('contacto');
   if (!usuario) {
@@ -1293,7 +1216,6 @@ function enviarMensajeContacto() {
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-// ── loadProductos con botón carrito ──
 async function loadProductos(){
   try{
     const res=await fetch('/api/productos');
@@ -1306,10 +1228,8 @@ async function loadProductos(){
   }catch(err){console.warn('loadProductos:',err.message);}
 }
 
-
 document.addEventListener('DOMContentLoaded',()=>{loadProductos();actualizarNavAuth();});
 
-// ── NAVBAR SESIÓN ──
 function actualizarNavAuth(){
   const usuario=JSON.parse(sessionStorage.getItem('usuario_sesion')||'null');
   const wrap=document.getElementById('navbar-auth');if(!wrap)return;
@@ -1361,7 +1281,6 @@ function cerrarCuentaDropdown(){
 }
 function cerrarSesion(){sessionStorage.removeItem('usuario_sesion');actualizarNavAuth();showPage('inicio');}
 
-// ── EDITAR CUENTA ──
 function abrirEditarCuenta(){
   const usuario=JSON.parse(sessionStorage.getItem('usuario_sesion')||'null');
   if(!usuario){openModal();return;}
@@ -1407,7 +1326,6 @@ async function guardarPerfil(){
   }catch{msg.textContent='Error de conexión.';msg.className='perfil-msg error';}
 }
 
-// ── MIS INSCRIPCIONES ──
 async function abrirMisInscripciones(){
   const usuario=JSON.parse(sessionStorage.getItem('usuario_sesion')||'null');
   if(!usuario){openModal();return;}
@@ -1443,7 +1361,6 @@ async function abrirMisInscripciones(){
 <script src="../js/cursos.js"></script>
 <script src="../js/banquetes.js"></script>
 <script>
-// ── Verificar si llegó desde confirmación de correo ──
 (function(){
   const params = new URLSearchParams(window.location.search);
   if(params.has('verified')){
@@ -1462,14 +1379,12 @@ async function abrirMisInscripciones(){
       }
       document.body.appendChild(toast);
       setTimeout(()=>toast.remove(), 6000);
-      // Limpiar la URL
       history.replaceState({}, '', '/');
     });
   }
 })();
 </script>
 <script>
-// ── Banner de regreso al admin (modo preview) ──
 (function(){
   if(sessionStorage.getItem('admin_preview_mode') !== '1') return;
   window.addEventListener('DOMContentLoaded', function(){
@@ -1494,7 +1409,6 @@ async function abrirMisInscripciones(){
       </button>
     `;
     document.body.prepend(banner);
-    // Empujar el contenido hacia abajo para que no quede tapado
     document.body.style.paddingTop = '44px';
   });
 })();
