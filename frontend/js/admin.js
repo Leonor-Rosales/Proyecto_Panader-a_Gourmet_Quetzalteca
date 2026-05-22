@@ -15,13 +15,23 @@
 
 const API = "/api";
 
+function adminAuthHeaders(extra = {}) {
+  let token = "";
+  try {
+    const admin = JSON.parse(sessionStorage.getItem("admin_session") || "null");
+    const usuario = JSON.parse(sessionStorage.getItem("usuario_sesion") || "null");
+    token = admin?.auth_token || usuario?.auth_token || "";
+  } catch {}
+  return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
+}
+
 // ══════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════
 
 async function loadDashboard() {
   try {
-    const res  = await fetch(`${API}/dashboard`);
+    const res  = await fetch(`${API}/dashboard/stats`, { headers: adminAuthHeaders() });
     if (!res.ok) {
       console.warn("Dashboard API error HTTP", res.status, "- usando conteo local");
       _loadDashboardLocal();
@@ -84,12 +94,23 @@ function setStatValue(id, val) {
 
 async function apiLoadCursos() {
   try {
-    const res  = await fetch(`${API}/cursos`);
+    const params = new URLSearchParams({ format: "paginated", page: String(window.cursoPage || 1), per_page: "10" });
+    const search = document.getElementById("search-cursos")?.value.trim();
+    const estado = document.getElementById("filter-curso-estado")?.value;
+    const desde = document.getElementById("filter-curso-desde")?.value;
+    const hasta = document.getElementById("filter-curso-hasta")?.value;
+    if (search) params.set("search", search);
+    if (estado) params.set("estado", estado);
+    if (desde) params.set("desde", desde);
+    if (hasta) params.set("hasta", hasta);
+    const res  = await fetch(`${API}/cursos?${params.toString()}`);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
+    const cursos = Array.isArray(data) ? data : (data.items || []);
+    window.cursosPagination = Array.isArray(data) ? null : data;
 
     // El backend ya filtra is_active=True; mapeamos todo lo que llegue
-    const mapped = data.map(c => ({
+    const mapped = cursos.map(c => ({
       id         : c.id_curso,
       titulo     : c.nombre_curso,
       fecha      : c.fecha_inicio,
@@ -102,12 +123,16 @@ async function apiLoadCursos() {
       estado     : c.estado      || "disponible",
       descripcion: c.descripcion,
       imagen     : c.imagen,
+      modalidad  : c.modalidad || "Presencial",
+      cupo_maximo: c.cupo_maximo || 20,
+      id_docente : c.id_docente || 1,
     }));
 
     cursosData        = mapped;
     window.cursosData = mapped;
 
     if (typeof renderCursos    === "function") renderCursos(window.cursosData);
+    if (typeof renderCursoPagination === "function") renderCursoPagination(window.cursosPagination);
     if (typeof renderDashboard === "function") renderDashboard();
   } catch (err) {
     console.warn("Error al cargar cursos:", err.message);
@@ -145,7 +170,7 @@ async function apiSaveCurso(payload, id = null) {
   try {
     const res  = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: adminAuthHeaders({ "Content-Type": "application/json" }),
       body   : JSON.stringify(body),
     });
     const data = await res.json();
@@ -165,7 +190,7 @@ async function apiDeleteCurso(id) {
    * Tras la respuesta recargamos la lista (el curso desaparece al filtrarse).
    */
   try {
-    const res  = await fetch(`${API}/cursos/${id}`, { method: "DELETE" });
+    const res  = await fetch(`${API}/cursos/${id}`, { method: "DELETE", headers: adminAuthHeaders() });
     const data = await res.json();
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Curso eliminado ✓");
@@ -226,7 +251,7 @@ async function apiSaveProducto(payload, id = null) {
   try {
     const res  = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: adminAuthHeaders({ "Content-Type": "application/json" }),
       body   : JSON.stringify(body),
     });
     const data = await res.json();
@@ -245,7 +270,7 @@ async function apiDeleteProducto(id) {
    * UPDATE producto SET is_active=False en el backend.
    */
   try {
-    const res  = await fetch(`${API}/productos/${id}`, { method: "DELETE" });
+    const res  = await fetch(`${API}/productos/${id}`, { method: "DELETE", headers: adminAuthHeaders() });
     const data = await res.json();
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Producto eliminado ✓");
@@ -287,7 +312,7 @@ async function apiCargarProductoParaEditar(id) {
 
 async function apiLoadInscripciones() {
   try {
-    const res  = await fetch(`${API}/inscripciones`);
+    const res  = await fetch(`${API}/inscripciones`, { headers: adminAuthHeaders() });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
 
@@ -299,7 +324,7 @@ async function apiLoadInscripciones() {
       cursoId          : i.id_curso,
       curso            : i.curso            || "—",
       fechaInscripcion : i.fecha_inscripcion ? i.fecha_inscripcion.slice(0, 10) : "—",
-      estado           : mapEstadoInscripcion(i.estado_pago),
+      estado           : i.estado === "cancelada" || i.is_active === false ? "cancelada" : mapEstadoInscripcion(i.estado_pago),
       estadoPago       : i.estado_pago,
       pago             : i.nota_final > 0 ? "Q." + i.nota_final : "Pendiente",
       metodoPago       : i.estado_pago || "—",
@@ -325,7 +350,7 @@ async function apiConfirmarInscripcion(id) {
   try {
     const res = await fetch(`${API}/inscripciones/${id}`, {
       method : "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: adminAuthHeaders({ "Content-Type": "application/json" }),
       body   : JSON.stringify({ estado_pago: "Pagado" }),
     });
     const data = await res.json();
@@ -340,7 +365,7 @@ async function apiConfirmarInscripcion(id) {
 
 async function apiCancelarInscripcion(id) {
   try {
-    const res  = await fetch(`${API}/inscripciones/${id}`, { method: "DELETE" });
+    const res  = await fetch(`${API}/inscripciones/${id}`, { method: "DELETE", headers: adminAuthHeaders() });
     const data = await res.json();
     if (!res.ok) { showToast(data.message, "error"); return; }
     showToast("Inscripción cancelada");
@@ -357,7 +382,7 @@ async function apiCancelarInscripcion(id) {
 
 async function apiLoadBanquetes() {
   try {
-    const res  = await fetch(`${API}/banquetes`);
+    const res  = await fetch(`${API}/banquetes`, { headers: adminAuthHeaders() });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
 
@@ -395,7 +420,7 @@ async function _updateBanquete(id, estado, msg) {
   try {
     const res = await fetch(`${API}/banquetes/${id}`, {
       method : "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: adminAuthHeaders({ "Content-Type": "application/json" }),
       body   : JSON.stringify({ estado }),
     });
     const data = await res.json();
@@ -413,6 +438,7 @@ async function _updateBanquete(id, estado, msg) {
 // ══════════════════════════════════════════
 
 (async function arrancarAPI() {
+  if (!sessionStorage.getItem("admin_session") && !sessionStorage.getItem("usuario_sesion")) return;
   // Cada carga es independiente: si una falla, las demás siguen
   await Promise.allSettled([
     apiLoadCursos(),

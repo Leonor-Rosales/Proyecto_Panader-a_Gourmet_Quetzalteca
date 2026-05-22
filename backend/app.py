@@ -17,6 +17,28 @@ from flask_cors import CORS
 from config import Config
 from database.conexion import init_db, db
 from routes.api_routes import api
+from controllers.security import admin_required
+
+
+def _ensure_lightweight_migrations(_db):
+    """Agrega columnas nuevas cuando la BD ya existía antes de estos cambios."""
+    from sqlalchemy import text
+
+    statements = [
+        "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS estado VARCHAR(20) NOT NULL DEFAULT 'activa'",
+        "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE",
+        "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS fecha_cancelacion TIMESTAMP NULL",
+        "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS fecha_recordatorio_enviado TIMESTAMP NULL",
+    ]
+    for sql in statements:
+        _db.session.execute(text(sql))
+    _db.session.execute(text(
+        "UPDATE inscripcion SET estado = 'activa' WHERE estado IS NULL"
+    ))
+    _db.session.execute(text(
+        "UPDATE inscripcion SET is_active = TRUE WHERE is_active IS NULL"
+    ))
+    _db.session.commit()
 
 
 def _start_course_reminder_scheduler(app):
@@ -70,29 +92,36 @@ def _start_course_reminder_scheduler(app):
         except Exception as e:
             print(f"[REMINDER ERROR] {e}")
 
-    # IDs ya notificados para no mandar dos veces (se reinicia al reiniciar el server)
-    _ya_notificados = set()
-
     def _loop():
         while True:
             try:
                 with app.app_context():
-                    from models.models import Configuracion, Curso, Inscripcion
+                    from models.models import Configuracion, Curso, NotificacionCurso
                     cfg = Configuracion.query.get("notif_recordatorio24h")
                     if cfg and cfg.valor == "1":
                         manana = date.today() + timedelta(days=1)
                         cursos = Curso.query.filter_by(fecha_inicio=manana, is_active=True).all()
                         for curso in cursos:
                             for insc in curso.inscripciones:
-                                key = f"{curso.id_curso}_{insc.id_usuario}"
-                                if key not in _ya_notificados and insc.usuario:
+                                ya_enviado = NotificacionCurso.query.filter_by(
+                                    id_curso=curso.id_curso,
+                                    id_inscripcion=insc.id_inscripcion,
+                                    tipo="recordatorio_24h",
+                                ).first()
+                                if not ya_enviado and insc.usuario and insc.is_active:
                                     _send(
                                         insc.usuario.email,
                                         insc.usuario.nombre_completo,
                                         curso.nombre_curso,
                                         str(manana),
                                     )
-                                    _ya_notificados.add(key)
+                                    db.session.add(NotificacionCurso(
+                                        id_curso=curso.id_curso,
+                                        id_inscripcion=insc.id_inscripcion,
+                                        tipo="recordatorio_24h",
+                                    ))
+                                    insc.fecha_recordatorio_enviado = datetime.utcnow()
+                                    db.session.commit()
             except Exception as e:
                 print(f"[SCHEDULER ERROR] {e}")
             time.sleep(3600)  # revisar cada hora
@@ -132,6 +161,7 @@ def create_app():
             from models.models import Configuracion
             from database.conexion import db as _db
             _db.create_all()                        # crea solo tablas nuevas
+            _ensure_lightweight_migrations(_db)
             from controllers.config_controller import inicializar_config
             inicializar_config()                    # inserta defaults si no existen
         except Exception as _e:
@@ -173,6 +203,7 @@ def create_app():
 
     # ── Endpoint para subir imágenes de cursos y productos ──
     @app.route("/api/upload", methods=["POST"])
+    @admin_required
     def upload_image():
         """
         Recibe un archivo de imagen (campo 'imagen') via multipart/form-data,
@@ -196,7 +227,7 @@ def create_app():
         # Generar nombre único para evitar colisiones
         ext = os.path.splitext(secure_filename(file.filename))[1].lower()
         if ext not in (".jpg", ".jpeg", ".png", ".webp"):
-            ext = ".jpg"
+            return jsonify({"message": "Extensión no permitida."}), 400
         filename = uuid.uuid4().hex + ext
 
         save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)

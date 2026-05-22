@@ -465,7 +465,7 @@ table{min-width:600px;}
           <div class="stat-card green">
             <div class="stat-icon">💰</div>
             <div class="stat-value" id="stat-ingresos">—</div>
-            <div class="stat-label">Ingresos totales</div>
+            <div class="stat-label">Ingresos del mes</div>
             <div class="stat-change up">Inscripciones</div>
           </div>
           <div class="stat-card pink">
@@ -497,6 +497,13 @@ table{min-width:600px;}
             <h3>Gestión de Cursos</h3>
             <div style="display:flex;gap:10px;align-items:center">
               <input class="search-input" type="text" placeholder="Buscar curso..." oninput="filterCursos(this.value)" id="search-cursos">
+              <select class="search-input" id="filter-curso-estado" onchange="filterCursos(document.getElementById('search-cursos').value)" style="width:130px">
+                <option value="">Estado</option>
+                <option value="disponible">Disponible</option>
+                <option value="lleno">Lleno</option>
+              </select>
+              <input class="search-input" type="date" id="filter-curso-desde" onchange="filterCursos(document.getElementById('search-cursos').value)" style="width:135px">
+              <input class="search-input" type="date" id="filter-curso-hasta" onchange="filterCursos(document.getElementById('search-cursos').value)" style="width:135px">
               <button class="btn-add" onclick="openAddModal()">+ Nuevo Curso</button>
             </div>
           </div>
@@ -507,6 +514,7 @@ table{min-width:600px;}
             </tr></thead>
             <tbody id="cursos-tbody"></tbody>
           </table>
+          <div class="filter-bar" id="cursos-pagination" style="padding:14px 22px;margin-bottom:0;justify-content:flex-end"></div>
         </div>
       </div>
 
@@ -716,6 +724,23 @@ table{min-width:600px;}
           <input type="text" id="curso-duracion" placeholder="ej. 4 horas">
         </div>
       </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Modalidad *</label>
+          <select id="curso-modalidad">
+            <option>Presencial</option>
+            <option>Virtual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Cupo máximo *</label>
+          <input type="number" id="curso-cupo" min="1" value="20">
+        </div>
+        <div class="form-group">
+          <label>ID Docente *</label>
+          <input type="number" id="curso-docente" min="1" value="1">
+        </div>
+      </div>
       <div class="form-group">
         <label>Extras / Incluye</label>
         <input type="text" id="curso-extras" placeholder="ej. Materiales incluidos, Cena incluida">
@@ -764,6 +789,27 @@ table{min-width:600px;}
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeCursoModal()">Cancelar</button>
       <button class="btn-save" onclick="saveCurso()">Guardar Curso ›</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="inscritos-curso-modal" onclick="handleModalBgClick(event,'inscritos-curso-modal')">
+  <div class="modal-editor">
+    <div class="modal-editor-header">
+      <h2 id="inscritos-curso-title">Inscritos</h2>
+      <button class="btn-close-modal" onclick="closeInscritosCursoModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="filter-bar">
+        <span class="badge badge-green" id="inscritos-total">0 inscritos</span>
+        <span class="badge badge-yellow" id="inscritos-cupos">0 cupos disponibles</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Alumno</th><th>Email</th><th>Fecha</th><th>Pago</th><th>Nota final</th></tr></thead>
+          <tbody id="inscritos-curso-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -933,7 +979,8 @@ async function handleAdminLogin(){
     currentAdmin = {
       name  : data.usuario.nombre_completo,
       email : data.usuario.email,
-      id_rol: data.usuario.id_rol
+      id_rol: data.usuario.id_rol,
+      auth_token: data.token || data.usuario.auth_token
     };
     sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
     _mostrarPanelAdmin();
@@ -961,6 +1008,17 @@ function _mostrarPanelAdmin(){
   initApp();
 }
 
+function getAdminAuthHeaders(extra = {}) {
+  const rawAdmin = sessionStorage.getItem('admin_session');
+  const rawUsuario = sessionStorage.getItem('usuario_sesion');
+  let token = '';
+  try { token = JSON.parse(rawAdmin || 'null')?.auth_token || ''; } catch {}
+  if(!token) {
+    try { token = JSON.parse(rawUsuario || 'null')?.auth_token || ''; } catch {}
+  }
+  return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
+}
+
 // Allow Enter key on login
 document.addEventListener('DOMContentLoaded', () => {
   cargarWaConfig();
@@ -974,7 +1032,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const session = sessionStorage.getItem('admin_session');
   if(session){
     currentAdmin = JSON.parse(session);
-    _mostrarPanelAdmin();
+    if(currentAdmin.auth_token) _mostrarPanelAdmin();
+    else sessionStorage.removeItem('admin_session');
   }
   // Set date
   const now = new Date();
@@ -1056,6 +1115,7 @@ function renderCursos(list){
       <td>${estadoBadge(c.estado)}</td>
       <td>
         <div class="actions-cell">
+          <button class="btn-icon" onclick="verInscritosCurso(${c.id})" title="Ver inscritos">👥</button>
           <button class="btn-icon" onclick="openEditCurso(${c.id})" title="Editar">✏️</button>
           <button class="btn-icon danger" onclick="confirmDeleteCurso(${c.id})" title="Eliminar">🗑</button>
         </div>
@@ -1065,8 +1125,29 @@ function renderCursos(list){
 }
 
 function filterCursos(q){
-  const filtered = cursosData.filter(c => c.titulo.toLowerCase().includes(q.toLowerCase()));
-  renderCursos(filtered);
+  window.cursoPage = 1;
+  if (typeof apiLoadCursos === 'function') apiLoadCursos();
+  else {
+    const filtered = cursosData.filter(c => c.titulo.toLowerCase().includes(q.toLowerCase()));
+    renderCursos(filtered);
+  }
+}
+
+function renderCursoPagination(p){
+  const el = document.getElementById('cursos-pagination');
+  if(!el || !p) return;
+  const page = p.page || 1;
+  const pages = p.pages || 1;
+  el.innerHTML = `
+    <button class="filter-chip" ${page <= 1 ? 'style="opacity:.45;pointer-events:none"' : ''} onclick="cambiarPaginaCursos(${page - 1})">Anterior</button>
+    <span style="font-size:.78rem;color:var(--text-light)">Página ${page} de ${pages || 1} · ${p.total || 0} cursos</span>
+    <button class="filter-chip" ${page >= pages ? 'style="opacity:.45;pointer-events:none"' : ''} onclick="cambiarPaginaCursos(${page + 1})">Siguiente</button>
+  `;
+}
+
+function cambiarPaginaCursos(page){
+  window.cursoPage = page;
+  apiLoadCursos();
 }
 
 // ══ CURSO MODAL ══
@@ -1079,6 +1160,9 @@ function openAddModal(){
   });
   document.getElementById('curso-nivel').value = 'Principiantes';
   document.getElementById('curso-estado').value = 'disponible';
+  document.getElementById('curso-modalidad').value = 'Presencial';
+  document.getElementById('curso-cupo').value = 20;
+  document.getElementById('curso-docente').value = 1;
   document.getElementById('img-preview').style.display = 'none';
   document.getElementById('img-placeholder').style.display = 'block';
   document.getElementById('curso-modal').classList.add('open');
@@ -1129,6 +1213,9 @@ function openEditCurso(id){
   document.getElementById('curso-duracion').value = c.duracion;
   document.getElementById('curso-extras').value = c.extras;
   document.getElementById('curso-estado').value = c.estado;
+  document.getElementById('curso-modalidad').value = c.modalidad || 'Presencial';
+  document.getElementById('curso-cupo').value = c.cupo_maximo || 20;
+  document.getElementById('curso-docente').value = c.id_docente || 1;
   document.getElementById('curso-desc').value = c.descripcion;
   document.getElementById('curso-imagen').value = c.imagen||'';
   previewImage(c.imagen||'');
@@ -1155,8 +1242,14 @@ async function saveCurso(){
   const titulo = document.getElementById('curso-titulo').value.trim();
   const fecha = document.getElementById('curso-fecha').value;
   const precio = document.getElementById('curso-precio').value.trim();
-  if(!titulo || !fecha || !precio){
+  const cupo = document.getElementById('curso-cupo').value;
+  const docente = document.getElementById('curso-docente').value;
+  if(!titulo || !fecha || !precio || !cupo || !docente){
     showToast('Por favor completa los campos obligatorios (*)','error'); return;
+  }
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  if(new Date(fecha + 'T12:00:00') < hoy){
+    showToast('La fecha del curso no puede ser pasada','error'); return;
   }
   const id = document.getElementById('curso-id').value;
   const payload = {
@@ -1169,9 +1262,9 @@ async function saveCurso(){
     descripcion: document.getElementById('curso-desc').value,
     imagen: document.getElementById('curso-imagen').value,
     // Campos requeridos por el backend
-    modalidad: 'Presencial',
-    cupo_maximo: 20,
-    id_docente: 1,
+    modalidad: document.getElementById('curso-modalidad').value,
+    cupo_maximo: parseInt(cupo),
+    id_docente: parseInt(docente),
   };
   closeCursoModal();
   // Llama a admin.js que hace el fetch real a Flask
@@ -1284,7 +1377,7 @@ async function cambiarEstadoPago(id, nuevoEstado){
   try {
     const res = await fetch(`/api/inscripciones/${id}`, {
       method : 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
       body   : JSON.stringify({ estado_pago: nuevoEstado }),
     });
     const data = await res.json();
@@ -1296,6 +1389,35 @@ async function cambiarEstadoPago(id, nuevoEstado){
     showToast('Error de conexión', 'error');
     await apiLoadInscripciones();
   }
+}
+
+async function verInscritosCurso(id){
+  try {
+    const res = await fetch(`/api/cursos/${id}/inscritos`, { headers: getAdminAuthHeaders() });
+    const data = await res.json();
+    if(!res.ok){ showToast(data.message || 'Error al cargar inscritos', 'error'); return; }
+    document.getElementById('inscritos-curso-title').textContent = data.curso.nombre_curso;
+    document.getElementById('inscritos-total').textContent = `${data.total_inscritos} inscritos`;
+    document.getElementById('inscritos-cupos').textContent = `${data.cupos_disponibles} cupos disponibles`;
+    document.getElementById('inscritos-curso-tbody').innerHTML = data.inscritos.length === 0
+      ? `<tr><td colspan="5"><div class="empty-state"><span class="empty-icon">👥</span><p>No hay inscritos activos.</p></div></td></tr>`
+      : data.inscritos.map(i => `
+        <tr>
+          <td><strong>${i.alumno || 'Sin nombre'}</strong></td>
+          <td>${i.email || '—'}</td>
+          <td>${formatDate((i.fecha_inscripcion || '').slice(0,10))}</td>
+          <td>${i.estado_pago || 'Pendiente'}</td>
+          <td>${i.nota_final ?? 0}</td>
+        </tr>
+      `).join('');
+    document.getElementById('inscritos-curso-modal').classList.add('open');
+  } catch {
+    showToast('Error de conexión', 'error');
+  }
+}
+
+function closeInscritosCursoModal(){
+  document.getElementById('inscritos-curso-modal').classList.remove('open');
 }
 
 // ══ PASTELERÍA ══
@@ -1468,7 +1590,7 @@ async function addAdmin(){
   try {
     const res = await fetch('/api/auth/invitar-docente', {
       method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
       body   : JSON.stringify({ email })
     });
     const data = await res.json();
@@ -1518,7 +1640,7 @@ async function guardarNotificaciones(){
     await Promise.all(Object.entries(vals).map(([clave, valor]) =>
       fetch(`/api/config/${clave}`, {
         method : 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body   : JSON.stringify({ valor })
       })
     ));
@@ -1588,6 +1710,7 @@ function handleModalBgClick(e, modalId){
     if(modalId==='curso-modal') closeCursoModal();
     if(modalId==='pastel-modal') closePastelModal();
     if(modalId==='inscripcion-modal') closeInscripcionModal();
+    if(modalId==='inscritos-curso-modal') closeInscritosCursoModal();
   }
 }
 
@@ -1604,7 +1727,7 @@ function showToast(msg, type='success'){
 // Escape to close modals
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
-    closeCursoModal(); closePastelModal(); closeInscripcionModal(); closeConfirm();
+    closeCursoModal(); closePastelModal(); closeInscripcionModal(); closeInscritosCursoModal(); closeConfirm();
     closeSidebar();   // AÑADIDO: cerrar sidebar con Escape en móvil
   }
 });
@@ -1623,7 +1746,7 @@ function checkAdminAccess() {
   if (rawAdmin) {
     try {
       const s = JSON.parse(rawAdmin);
-      if (s && (s.id_rol === 2 || s.id_rol === 3)) return; // OK — Super Admin o Docente
+      if (s && (s.id_rol === 2 || s.id_rol === 3) && s.auth_token) return; // OK
     } catch {}
   }
 
@@ -1633,7 +1756,7 @@ function checkAdminAccess() {
     try {
       const s = JSON.parse(rawUsuario);
       if (s && (s.id_rol === 2 || s.id_rol === 3)) {
-        currentAdmin = { name: s.nombre_completo, email: s.email, id_rol: s.id_rol };
+        currentAdmin = { name: s.nombre_completo, email: s.email, id_rol: s.id_rol, auth_token: s.auth_token };
         sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
         return; // OK
       }
@@ -1643,9 +1766,8 @@ function checkAdminAccess() {
     } catch {}
   }
 
-// 3. Sin sesión válida con rol admin → redirigir a home
-  // Cualquiera que llegue a /admin sin sesión admin es rechazado
-  window.location.replace('/');
+  // 3. Sin sesión previa: mostrar el login interno del panel.
+  return;
 }
 
 
@@ -1731,18 +1853,26 @@ async function handleFileSelect(fileInput, urlInputId, previewImgId, placeholder
     else        placeholder.style.display = 'none';
   }
 
-  // Convertir a base64 para guardar directamente en la BD (sin archivos en disco)
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const base64 = e.target.result; // data:image/jpeg;base64,...
+  const form = new FormData();
+  form.append('imagen', file);
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: getAdminAuthHeaders(),
+      body: form
+    });
+    const data = await res.json();
+    if(!res.ok){
+      showToast(data.message || 'Error al subir imagen', 'error');
+      fileInput.value = '';
+      return;
+    }
     const urlInput = document.getElementById(urlInputId);
-    if (urlInput) urlInput.value = base64;
-    showToast('Imagen lista ✓');
-  };
-  reader.onerror = function() {
-    showToast('Error al leer la imagen', 'error');
-  };
-  reader.readAsDataURL(file);
+    if (urlInput) urlInput.value = data.url;
+    showToast('Imagen subida ✓');
+  } catch {
+    showToast('Error al subir imagen', 'error');
+  }
 }
 
 // CAMBIO: previewImage ahora acepta IDs dinámicos (para curso y pastel)

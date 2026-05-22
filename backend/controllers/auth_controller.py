@@ -17,6 +17,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
+from controllers.security import crear_token_usuario
 
 # Almacén temporal de registros pendientes (en memoria)
 # Estructura: { token: { name, email, password_hash, telefono, expires_at } }
@@ -234,9 +235,12 @@ def google_login(data: dict):
         db.session.add(usuario)
         db.session.commit()
 
+    usuario_dict = usuario.to_dict()
+    usuario_dict["auth_token"] = crear_token_usuario(usuario)
     return {
         "message": "Inicio de sesión con Google exitoso.",
-        "usuario": usuario.to_dict(),
+        "usuario": usuario_dict,
+        "token": usuario_dict["auth_token"],
     }, 200
 
 
@@ -285,9 +289,12 @@ def login_usuario(data: dict):
     if not usuario or not check_password_hash(usuario.password_hash, password):
         return {"message": "Correo o contraseña incorrectos."}, 401
 
+    usuario_dict = usuario.to_dict()
+    usuario_dict["auth_token"] = crear_token_usuario(usuario)
     return {
         "message": "Inicio de sesión exitoso.",
-        "usuario": usuario.to_dict(),
+        "usuario": usuario_dict,
+        "token": usuario_dict["auth_token"],
     }, 200
 
 
@@ -320,9 +327,12 @@ def google_userinfo(data: dict):
         db.session.add(usuario)
         db.session.commit()
 
+    usuario_dict = usuario.to_dict()
+    usuario_dict["auth_token"] = crear_token_usuario(usuario)
     return {
         "message": "Inicio de sesión con Google exitoso.",
-        "usuario": usuario.to_dict(),
+        "usuario": usuario_dict,
+        "token": usuario_dict["auth_token"],
     }, 200
 
 
