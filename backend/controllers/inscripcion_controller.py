@@ -109,7 +109,7 @@ def inscripciones_por_usuario(id_usuario: int):
 
     inscripciones = (
         Inscripcion.query
-        .filter_by(id_usuario=id_usuario)
+        .filter_by(id_usuario=id_usuario, is_active=True, estado="activa")
         .order_by(Inscripcion.fecha_inscripcion.desc())
         .all()
     )
@@ -122,6 +122,29 @@ def inscripciones_por_usuario(id_usuario: int):
             d["fecha_inicio"] = str(i.curso.fecha_inicio)
         resultado.append(d)
     return resultado, 200
+
+
+def cancelar_inscripcion_usuario(id_inscripcion: int, data: dict):
+    id_usuario = data.get("id_usuario")
+    if not id_usuario:
+        return {"message": "Se requiere id_usuario para cancelar la inscripción."}, 400
+
+    i = Inscripcion.query.get(id_inscripcion)
+    if not i:
+        return {"message": "Inscripción no encontrada."}, 404
+    if i.id_usuario != int(id_usuario):
+        return {"message": "No puedes cancelar una inscripción de otro usuario."}, 403
+    if not i.is_active or i.estado == "cancelada":
+        return {"message": "La inscripción ya estaba cancelada."}, 200
+
+    i.is_active = False
+    i.estado = "cancelada"
+    i.fecha_cancelacion = datetime.utcnow()
+    if i.curso:
+        sincronizar_estado_curso(i.curso)
+
+    db.session.commit()
+    return {"message": "Te desuscribiste del curso correctamente."}, 200
 
 
 def cancelar_inscripcion(id_inscripcion: int):

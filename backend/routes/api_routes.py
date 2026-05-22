@@ -38,6 +38,7 @@ from controllers.dashboard_controller import obtener_dashboard_stats
 from controllers.inscripcion_controller import (
     actualizar_estado,
     cancelar_inscripcion,
+    cancelar_inscripcion_usuario,
     crear_inscripcion,
     inscripciones_por_usuario,
     obtener_inscripcion,
@@ -222,6 +223,11 @@ def put_inscripcion(id_inscripcion):
 @admin_required
 def delete_inscripcion(id_inscripcion):
     return resp(*cancelar_inscripcion(id_inscripcion))
+
+
+@api.post("/inscripciones/<int:id_inscripcion>/desuscribir")
+def post_desuscribir_inscripcion(id_inscripcion):
+    return resp(*cancelar_inscripcion_usuario(id_inscripcion, request.get_json(force=True) or {}))
 
 
 @api.get("/banquetes")
