@@ -1304,7 +1304,7 @@ function renderInscripciones(list){
         <td style="font-size:.82rem">${curso?.titulo||'—'}<div class="inscripcion-detail">${curso?formatDate(curso.fecha):''}</div></td>
         <td style="font-size:.78rem">${formatDate(i.fechaInscripcion)}</td>
         <td>${estadoInscripcionBadge(i.estado)}</td>
-        <td><strong>${i.pago}</strong><div class="inscripcion-detail">${i.metodoPago}</div></td>
+        <td><div class="inscripcion-detail" style="font-size:.88rem;font-weight:700;color:var(--text)">${i.metodoPago}</div></td>
         <td>
           <div class="actions-cell">
             <select class="estado-pago-select" onchange="cambiarEstadoPago(${i.id}, this.value)"
@@ -1936,7 +1936,7 @@ async function guardarWaNumber() {
   if (numero.length < 8) { showToast('Ingresa un número válido (mínimo 8 dígitos)','error'); return; }
   try {
     const r = await fetch('/api/config/whatsapp_numero', {
-      method:'PUT', headers:{'Content-Type':'application/json'},
+      method:'PUT', headers:getAdminAuthHeaders({'Content-Type':'application/json'}),
       body: JSON.stringify({ valor: numero })
     });
     const d = await r.json();
