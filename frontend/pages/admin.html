@@ -1349,8 +1349,7 @@ function verInscripcion(id){
       <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Teléfono</label>${i.telefono||'No especificado'}</div>
       <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Curso</label><strong>${curso?.titulo||'—'}</strong> · ${curso?formatDate(curso.fecha):''}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Pago</label><strong style="color:var(--gold);font-size:1.1rem">${i.pago}</strong></div>
-        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Método</label>${i.metodoPago}</div>
+        <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Pago</label><strong style="color:var(--gold);font-size:1.1rem">${i.metodoPago}</strong></div>
       </div>
       <div><label style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.5px;display:block;margin-bottom:4px">Fecha de inscripción</label>${formatDate(i.fechaInscripcion)}</div>
     </div>
