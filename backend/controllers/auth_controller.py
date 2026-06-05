@@ -10,7 +10,7 @@ CAMBIOS:
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.conexion import db
-from models.models import Usuario, Rol
+from models.models import Usuario, Rol, Configuracion
 from datetime import date, datetime, timedelta
 import secrets
 import smtplib
@@ -26,10 +26,12 @@ _pending_registrations: dict = {}
 
 def _send_verification_email(to_email: str, name: str, token: str) -> bool:
     """Envía el correo de verificación. Retorna True si fue exitoso."""
-    smtp_host = os.getenv("MAIL_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("MAIL_PORT", 587))
-    smtp_user = os.getenv("MAIL_USER", "")
-    smtp_pass = os.getenv("MAIL_PASSWORD", "")
+    from controllers.config_controller import get_smtp_config
+    smtp = get_smtp_config()
+    smtp_host = smtp["host"]
+    smtp_port = smtp["port"]
+    smtp_user = smtp["user"]
+    smtp_pass = smtp["password"]
     base_url  = os.getenv("BASE_URL", "http://localhost:5000")
 
     if not smtp_user or not smtp_pass:
@@ -40,9 +42,12 @@ def _send_verification_email(to_email: str, name: str, token: str) -> bool:
 
     verify_url = f"{base_url}/api/auth/confirm/{token}"
 
+    negocio_nombre_row = Configuracion.query.get("negocio_nombre")
+    negocio_nombre = negocio_nombre_row.valor if negocio_nombre_row and negocio_nombre_row.valor else "Panadería Gourmet Quetzalteca"
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = "Confirma tu cuenta — Panadería Gourmet Quetzalteca"
-    msg["From"]    = f"Panadería Gourmet Quetzalteca <{smtp_user}>"
+    msg["From"]    = f"{negocio_nombre} <{smtp_user}>"
     msg["To"]      = to_email
 
     html = f"""
@@ -255,6 +260,22 @@ def actualizar_usuario(id_usuario: int, data: dict):
 
     usuario.nombre_completo = nombre
 
+    email = (data.get("email") or "").strip().lower()
+    if email and email != usuario.email:
+        existente = Usuario.query.filter_by(email=email).first()
+        if existente:
+            return {"message": "Este correo ya está registrado por otro usuario."}, 409
+        usuario.email = email
+        
+        # Actualizar username para evitar colisiones
+        new_username = email.split("@")[0]
+        count = 1
+        temp_username = new_username
+        while Usuario.query.filter(Usuario.username == temp_username, Usuario.id_usuario != id_usuario).first():
+            temp_username = f"{new_username}{count}"
+            count += 1
+        usuario.username = temp_username
+
     fecha = data.get("fecha_nacimiento")
     if fecha:
         try:
@@ -343,10 +364,12 @@ _pending_invitations: dict = {}
 
 def _send_invitation_email(to_email: str, nombre_usuario: str, token: str) -> bool:
     """Envía el correo de invitación para ser docente."""
-    smtp_host = os.getenv("MAIL_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("MAIL_PORT", 587))
-    smtp_user = os.getenv("MAIL_USER", "")
-    smtp_pass = os.getenv("MAIL_PASSWORD", "")
+    from controllers.config_controller import get_smtp_config
+    smtp = get_smtp_config()
+    smtp_host = smtp["host"]
+    smtp_port = smtp["port"]
+    smtp_user = smtp["user"]
+    smtp_pass = smtp["password"]
     base_url  = os.getenv("BASE_URL", "http://localhost:5000")
 
     accept_url = f"{base_url}/api/auth/accept-docente/{token}"
@@ -356,9 +379,12 @@ def _send_invitation_email(to_email: str, nombre_usuario: str, token: str) -> bo
         print(f"[DEV] URL aceptar: {accept_url}")
         return True
 
+    negocio_nombre_row = Configuracion.query.get("negocio_nombre")
+    negocio_nombre = negocio_nombre_row.valor if negocio_nombre_row and negocio_nombre_row.valor else "Panadería Gourmet Quetzalteca"
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = "Invitación para ser Docente — Panadería Gourmet Quetzalteca"
-    msg["From"]    = f"Panadería Gourmet Quetzalteca <{smtp_user}>"
+    msg["From"]    = f"{negocio_nombre} <{smtp_user}>"
     msg["To"]      = to_email
 
     html = f"""

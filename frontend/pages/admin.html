@@ -588,13 +588,20 @@ table{min-width:600px;}
             </div>
             <div class="form-group">
               <label>Nueva contraseña</label>
-              <input type="password" placeholder="Dejar en blanco para no cambiar">
+              <input type="password" id="setting-password" placeholder="Dejar en blanco para no cambiar">
             </div>
-            <button class="btn-save" onclick="showToast('Configuración guardada','success')">Guardar Cambios</button>
+            <button class="btn-save" onclick="guardarCuentaAdmin()">Guardar Cambios</button>
           </div>
+          
           <div class="settings-card">
             <h3>Notificaciones por Correo</h3>
-            <p style="font-size:.75rem;color:#aaa;margin:-4px 0 12px;line-height:1.5">Los correos se envían a <strong id="notif-email-label">—</strong></p>
+            <div class="form-group" style="margin-top: 8px; margin-bottom: 18px;">
+              <label>Correo de destino para notificaciones</label>
+              <div style="display:flex; gap:8px; align-items: center;">
+                <input type="email" id="setting-notif-email" placeholder="correo@ejemplo.com" style="flex:1; margin-bottom:0;">
+                <button class="btn-save" onclick="guardarEmailNotificaciones()" style="margin:0; padding:10px 16px; font-size:0.82rem; white-space:nowrap;">Guardar Correo</button>
+              </div>
+            </div>
             <div class="setting-row">
               <label>Nueva inscripción</label>
               <label class="toggle"><input type="checkbox" id="notif-inscripcion" onchange="guardarNotificaciones()"><span class="slider"></span></label>
@@ -977,6 +984,7 @@ async function handleAdminLogin(){
     }
 
     currentAdmin = {
+      id    : data.usuario.id_usuario,
       name  : data.usuario.nombre_completo,
       email : data.usuario.email,
       id_rol: data.usuario.id_rol,
@@ -1664,10 +1672,78 @@ async function cargarNotificaciones(){
       const el = document.getElementById(id);
       if(el && data[clave] !== undefined) el.checked = data[clave] === '1';
     }
-    // Mostrar correo destino
-    const lbl = document.getElementById('notif-email-label');
-    if(lbl && data['negocio_email']) lbl.textContent = data['negocio_email'];
+
+    // Cargar correo destino de notificaciones
+    const input = document.getElementById('setting-notif-email');
+    if(input && data['negocio_email']) input.value = data['negocio_email'];
   } catch { /* sin conexión, dejar defaults */ }
+}
+
+async function guardarCuentaAdmin(){
+  if (!currentAdmin || !currentAdmin.id) {
+    showToast('Sesión inválida o ID de administrador no encontrado.', 'error');
+    return;
+  }
+  const name = document.getElementById('setting-name').value.trim();
+  const email = document.getElementById('setting-email').value.trim();
+  const password = document.getElementById('setting-password').value;
+
+  if (!name || !email) {
+    showToast('El nombre y el correo electrónico son obligatorios.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/auth/usuario/${currentAdmin.id}`, {
+      method: 'PUT',
+      headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        nombre_completo: name,
+        email: email,
+        password: password || undefined
+      })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast('Cuenta de administrador guardada ✓', 'success');
+      document.getElementById('setting-password').value = '';
+      
+      // Actualizar sesión local
+      currentAdmin.name = data.usuario.nombre_completo;
+      currentAdmin.email = data.usuario.email;
+      sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
+      
+      // Actualizar vista lateral
+      updateSidebarName(data.usuario.nombre_completo);
+    } else {
+      showToast(data.message || 'Error al actualizar cuenta', 'error');
+    }
+  } catch(e) {
+    showToast('Error de conexión con el servidor.', 'error');
+  }
+}
+
+async function guardarEmailNotificaciones() {
+  const email = document.getElementById('setting-notif-email').value.trim();
+  if (!email) {
+    showToast('El correo no puede estar vacío.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch('/api/config/negocio_email', {
+      method: 'PUT',
+      headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ valor: email })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast('Correo de notificaciones guardado ✓', 'success');
+    } else {
+      showToast(data.message || 'Error al guardar el correo', 'error');
+    }
+  } catch {
+    showToast('Error de conexión', 'error');
+  }
 }
 
 // ══ HELPERS ══
@@ -1755,7 +1831,7 @@ function checkAdminAccess() {
     try {
       const s = JSON.parse(rawUsuario);
       if (s && (s.id_rol === 2 || s.id_rol === 3)) {
-        currentAdmin = { name: s.nombre_completo, email: s.email, id_rol: s.id_rol, auth_token: s.auth_token };
+        currentAdmin = { id: s.id_usuario, name: s.nombre_completo, email: s.email, id_rol: s.id_rol, auth_token: s.auth_token };
         sessionStorage.setItem('admin_session', JSON.stringify(currentAdmin));
         return; // OK
       }

@@ -52,16 +52,23 @@ def _start_course_reminder_scheduler(app):
     from datetime import datetime, timedelta, date
 
     def _send(to_email, nombre_alumno, nombre_curso, fecha_inicio):
-        smtp_host = os.getenv("MAIL_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("MAIL_PORT", 587))
-        smtp_user = os.getenv("MAIL_USER", "")
-        smtp_pass = os.getenv("MAIL_PASSWORD", "")
+        from controllers.config_controller import get_smtp_config
+        from models.models import Configuracion
+        smtp = get_smtp_config()
+        smtp_host = smtp["host"]
+        smtp_port = smtp["port"]
+        smtp_user = smtp["user"]
+        smtp_pass = smtp["password"]
         if not smtp_user or not smtp_pass:
             print(f"[REMINDER] Recordatorio para {to_email} - {nombre_curso} el {fecha_inicio}")
             return
+        
+        negocio_nombre_row = Configuracion.query.get("negocio_nombre")
+        negocio_nombre = negocio_nombre_row.valor if negocio_nombre_row and negocio_nombre_row.valor else "Panadería Gourmet Quetzalteca"
+
         msg = MIMEMultipart("alternative")
         msg["Subject"] = f"Recordatorio: Tu curso '{nombre_curso}' empieza mañana 🥐"
-        msg["From"]    = f"Panadería Gourmet Quetzalteca <{smtp_user}>"
+        msg["From"]    = f"{negocio_nombre} <{smtp_user}>"
         msg["To"]      = to_email
         html = f"""
         <html><body style="font-family:'Segoe UI',sans-serif;background:#fdf6f8;margin:0;padding:0">

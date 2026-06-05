@@ -75,7 +75,72 @@ def crear_inscripcion(data: dict):
     db.session.flush()
     sincronizar_estado_curso(curso)
     db.session.commit()
+    
+    # Notificar al administrador por correo
+    _notificar_inscripcion_admin(usuario, curso)
+
     return {"message": "Inscripción creada.", "inscripcion": nueva.to_dict()}, 201
+
+
+def _notificar_inscripcion_admin(usuario, curso):
+    try:
+        from models.models import Configuracion
+        cfg = Configuracion.query.get("notif_inscripcion")
+        if not cfg or cfg.valor != "1":
+            return
+
+        from controllers.config_controller import get_smtp_config, get_admin_email
+        smtp = get_smtp_config()
+        smtp_host = smtp["host"]
+        smtp_port = smtp["port"]
+        smtp_user = smtp["user"]
+        smtp_pass = smtp["password"]
+        admin_email = get_admin_email()
+
+        if not smtp_user or not smtp_pass or not admin_email:
+            return
+
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+
+        negocio_nombre_row = Configuracion.query.get("negocio_nombre")
+        negocio_nombre = negocio_nombre_row.valor if negocio_nombre_row and negocio_nombre_row.valor else "Panadería Gourmet Quetzalteca"
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Nueva Inscripción: {usuario.nombre_completo} - {curso.nombre_curso} 🥐"
+        msg["From"]    = f"{negocio_nombre} <{smtp_user}>"
+        msg["To"]      = admin_email
+
+        html = f"""
+        <html><body style="font-family:'Segoe UI',sans-serif;background:#fdf6f8;margin:0;padding:0">
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;
+                        box-shadow:0 4px 24px rgba(100,30,50,.12);overflow:hidden">
+            <tr><td style="background:#7a1f3d;padding:24px 32px;text-align:center">
+              <h1 style="color:#fff;font-size:1.3rem;margin:0;font-style:italic">🥐 Panadería Gourmet Quetzalteca</h1>
+            </td></tr>
+            <tr><td style="padding:32px">
+              <h2 style="color:#7a1f3d;margin-top:0">¡Nueva inscripción registrada!</h2>
+              <p style="color:#555;line-height:1.6">
+                El usuario <strong>{usuario.nombre_completo}</strong> ({usuario.email}) se ha inscrito al curso <strong>"{curso.nombre_curso}"</strong>.
+              </p>
+              <p style="color:#555;line-height:1.6">Por favor revisa el panel de administración para validar el pago del anticipo de Q{(float(curso.precio_curso) * 0.5):.2f}.</p>
+            </td></tr>
+            <tr><td style="background:#fdf0f4;padding:14px 32px;text-align:center">
+              <p style="color:#bbb;font-size:.75rem;margin:0">© 2025 Panadería Gourmet Quetzalteca · Guatemala</p>
+            </td></tr>
+          </table>
+        </body></html>"""
+        msg.attach(MIMEText(html, "html"))
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, admin_email, msg.as_string())
+    except Exception as e:
+        print(f"[MAIL ADMIN INSCRIPCION ERROR] {e}")
 
 
 def actualizar_estado(id_inscripcion: int, data: dict):

@@ -13,7 +13,7 @@ def init_db(app):
     with app.app_context():
         try:
             db.engine.connect()
-            print("  Conexión a MySQL exitosa.")
+            print("  Conexión a PostgreSQL exitosa.")
         except Exception as e:
-            print(f"  Error al conectar con MySQL: {e}")
+            print(f"  Error al conectar con PostgreSQL: {e}")
             raise

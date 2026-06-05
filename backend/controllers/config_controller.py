@@ -10,8 +10,9 @@ Endpoints:
   POST /api/config/init         → insertar valores por defecto si no existen
 """
 
+import os
 from database.conexion import db
-from models.models import Configuracion
+from models.models import Configuracion, Usuario
 
 # Valores por defecto que se crean en /api/config/init
 DEFAULTS = {
@@ -23,6 +24,11 @@ DEFAULTS = {
     "notif_banquete"       : "1",
     "notif_recordatorio24h": "0",
     "notif_reporte_semanal": "1",
+    # Credenciales de correo (SMTP)
+    "mail_host"            : os.getenv("MAIL_HOST", "smtp.gmail.com"),
+    "mail_port"            : os.getenv("MAIL_PORT", "587"),
+    "mail_user"            : os.getenv("MAIL_USER", ""),
+    "mail_password"        : os.getenv("MAIL_PASSWORD", ""),
 }
 
 
@@ -87,3 +93,57 @@ def get_wa_number() -> str:
         return row.valor if row else DEFAULTS["whatsapp_numero"]
     except Exception:
         return DEFAULTS["whatsapp_numero"]
+
+
+# ── Helper para obtener credenciales SMTP desde la BD ────────────────────────
+def get_smtp_config() -> dict:
+    """
+    Lee las credenciales SMTP de la base de datos.
+    Si no existen, usa variables de entorno como fallback.
+    """
+    try:
+        host_row = Configuracion.query.get("mail_host")
+        port_row = Configuracion.query.get("mail_port")
+        user_row = Configuracion.query.get("mail_user")
+        pass_row = Configuracion.query.get("mail_password")
+
+        host = host_row.valor if host_row and host_row.valor else os.getenv("MAIL_HOST", "smtp.gmail.com")
+        port = int(port_row.valor) if port_row and port_row.valor.isdigit() else int(os.getenv("MAIL_PORT", 587))
+        user = user_row.valor if user_row and user_row.valor else os.getenv("MAIL_USER", "")
+        password = pass_row.valor if pass_row and pass_row.valor else os.getenv("MAIL_PASSWORD", "")
+
+        return {
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": password
+        }
+    except Exception:
+        return {
+            "host": os.getenv("MAIL_HOST", "smtp.gmail.com"),
+            "port": int(os.getenv("MAIL_PORT", 587)),
+            "user": os.getenv("MAIL_USER", ""),
+            "password": os.getenv("MAIL_PASSWORD", "")
+        }
+
+
+# ── Helper para obtener el correo del administrador ─────────────────────────
+def get_admin_email() -> str:
+    """
+    Retorna el correo de notificaciones (negocio_email) configurado.
+    Si no está configurado, busca como fallback el correo del usuario con rol de Administrador (id_rol = 2) en la BD.
+    """
+    try:
+        # 1. Obtener correo de notificaciones configurado en la BD
+        email_row = Configuracion.query.get("negocio_email")
+        if email_row and email_row.valor:
+            return email_row.valor
+
+        # 2. Fallback al correo de la cuenta de administrador principal
+        admin = Usuario.query.filter_by(id_rol=2).first()
+        if admin and admin.email:
+            return admin.email
+            
+        return DEFAULTS["negocio_email"]
+    except Exception:
+        return DEFAULTS["negocio_email"]
