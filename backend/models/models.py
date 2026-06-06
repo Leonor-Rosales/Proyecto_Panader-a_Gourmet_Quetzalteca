@@ -56,6 +56,7 @@ class Usuario(db.Model):
     email           = db.Column(db.String(100), nullable=False, unique=True)
     password_hash   = db.Column(db.Text, nullable=False)
     id_rol          = db.Column(db.Integer, db.ForeignKey("rol.id_rol"), nullable=False)
+    telefono        = db.Column(db.String(20), nullable=True)
 
     rol          = db.relationship("Rol", back_populates="usuarios")
     estudiante   = db.relationship("Estudiante", back_populates="usuario", uselist=False)
@@ -71,6 +72,7 @@ class Usuario(db.Model):
             "email"           : self.email,
             "id_rol"          : self.id_rol,
             "rol"             : self.rol.nombre_rol if self.rol else None,
+            "telefono"        : self.telefono,
         }
 
 
@@ -220,6 +222,7 @@ class Inscripcion(db.Model):
             "id_usuario"       : self.id_usuario,
             "alumno"           : self.usuario.nombre_completo if self.usuario else None,
             "email"            : self.usuario.email if self.usuario else None,
+            "telefono"         : self.usuario.telefono if self.usuario else None,
             "id_curso"         : self.id_curso,
             "curso"            : self.curso.nombre_curso if self.curso else None,
             "fecha_inscripcion": str(self.fecha_inscripcion),

@@ -178,6 +178,7 @@ def confirm_email(token: str):
         email            = info["email"],
         password_hash    = info["password_hash"],
         id_rol           = rol_cliente.id_rol,
+        telefono         = info.get("telefono"),
     )
     db.session.add(nuevo)
     db.session.commit()
@@ -259,6 +260,10 @@ def actualizar_usuario(id_usuario: int, data: dict):
         return {"message": "El nombre no puede estar vacío."}, 400
 
     usuario.nombre_completo = nombre
+
+    telefono = data.get("telefono")
+    if telefono is not None:
+        usuario.telefono = telefono.strip()
 
     email = (data.get("email") or "").strip().lower()
     if email and email != usuario.email:

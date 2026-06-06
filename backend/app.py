@@ -29,6 +29,7 @@ def _ensure_lightweight_migrations(_db):
         "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE",
         "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS fecha_cancelacion TIMESTAMP NULL",
         "ALTER TABLE inscripcion ADD COLUMN IF NOT EXISTS fecha_recordatorio_enviado TIMESTAMP NULL",
+        "ALTER TABLE usuario ADD COLUMN IF NOT EXISTS telefono VARCHAR(20) NULL",
     ]
     for sql in statements:
         _db.session.execute(text(sql))
@@ -44,38 +45,50 @@ def _ensure_lightweight_migrations(_db):
 def _start_course_reminder_scheduler(app):
     """
     Hilo de fondo que cada hora revisa si hay cursos que empiezan en ~24h
-    y, si la configuración notif_recordatorio24h=1, manda correos a los inscritos.
+    y, si la configuración notif_recordatorio24h=1, manda correos a los inscritos y copia al administrador.
     """
     import time, smtplib
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
     from datetime import datetime, timedelta, date
 
-    def _send(to_email, nombre_alumno, nombre_curso, fecha_inicio):
-        smtp_host = os.getenv("MAIL_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("MAIL_PORT", 587))
-        smtp_user = os.getenv("MAIL_USER", "")
-        smtp_pass = os.getenv("MAIL_PASSWORD", "")
+    def _send_reminders(student_email, nombre_alumno, nombre_curso, fecha_inicio, hora_curso, admin_email=None):
+        from controllers.config_controller import get_smtp_config
+        from models.models import Configuracion
+
+        smtp = get_smtp_config()
+        smtp_host = smtp["host"]
+        smtp_port = smtp["port"]
+        smtp_user = smtp["user"]
+        smtp_pass = smtp["password"]
+
         if not smtp_user or not smtp_pass:
-            print(f"[REMINDER] Recordatorio para {to_email} - {nombre_curso} el {fecha_inicio}")
+            print(f"[REMINDER] Recordatorio para {student_email} - {nombre_curso} el {fecha_inicio}")
+            if admin_email:
+                print(f"[REMINDER] Copia de recordatorio para ADMIN {admin_email} - {nombre_curso} el {fecha_inicio}")
             return
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Recordatorio: Tu curso '{nombre_curso}' empieza mañana 🥐"
-        msg["From"]    = f"Panadería Gourmet Quetzalteca <{smtp_user}>"
-        msg["To"]      = to_email
-        html = f"""
+
+        negocio_nombre_row = Configuracion.query.get("negocio_nombre")
+        negocio_nombre = negocio_nombre_row.valor if negocio_nombre_row and negocio_nombre_row.valor else "Panadería Gourmet Quetzalteca"
+
+        # 1. Correo del Alumno
+        msg_student = MIMEMultipart("alternative")
+        msg_student["Subject"] = f"Recordatorio: Tu curso '{nombre_curso}' empieza mañana 🥐"
+        msg_student["From"]    = f"{negocio_nombre} <{smtp_user}>"
+        msg_student["To"]      = student_email
+        html_student = f"""
         <html><body style="font-family:'Segoe UI',sans-serif;background:#fdf6f8;margin:0;padding:0">
           <table width="100%" cellpadding="0" cellspacing="0"
                  style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;
                         box-shadow:0 4px 24px rgba(100,30,50,.12);overflow:hidden">
             <tr><td style="background:#7a1f3d;padding:24px 32px;text-align:center">
-              <h1 style="color:#fff;font-size:1.3rem;margin:0;font-style:italic">🥐 Panadería Gourmet Quetzalteca</h1>
+              <h1 style="color:#fff;font-size:1.3rem;margin:0;font-style:italic">🥐 {negocio_nombre}</h1>
             </td></tr>
             <tr><td style="padding:32px">
               <h2 style="color:#7a1f3d;margin-top:0">¡Hola, {nombre_alumno}!</h2>
               <p style="color:#555;line-height:1.6">
                 Este es un recordatorio de que tu curso <strong>"{nombre_curso}"</strong>
-                comienza <strong>mañana {fecha_inicio}</strong>.
+                comienza <strong>mañana {fecha_inicio}</strong> a las <strong>{hora_curso or 'No especificada'}</strong>.
               </p>
               <p style="color:#555;line-height:1.6">¡Prepárate y mucho éxito! 🎉</p>
             </td></tr>
@@ -84,47 +97,125 @@ def _start_course_reminder_scheduler(app):
             </td></tr>
           </table>
         </body></html>"""
-        msg.attach(MIMEText(html, "html"))
+        msg_student.attach(MIMEText(html_student, "html"))
+
+        # 2. Correo del Admin
+        msg_admin = None
+        if admin_email:
+            msg_admin = MIMEMultipart("alternative")
+            msg_admin["Subject"] = f"Recordatorio para el curso de mañana {fecha_inicio} a las {hora_curso or 'No especificada'} 🥐"
+            msg_admin["From"]    = f"{negocio_nombre} <{smtp_user}>"
+            msg_admin["To"]      = admin_email
+            html_admin = f"""
+            <html><body style="font-family:'Segoe UI',sans-serif;background:#fdf6f8;margin:0;padding:0">
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;
+                            box-shadow:0 4px 24px rgba(100,30,50,.12);overflow:hidden">
+                <tr><td style="background:#7a1f3d;padding:24px 32px;text-align:center">
+                  <h1 style="color:#fff;font-size:1.3rem;margin:0;font-style:italic">🥐 {negocio_nombre}</h1>
+                </td></tr>
+                <tr><td style="padding:32px">
+                  <h2 style="color:#7a1f3d;margin-top:0">Recordatorio para el curso de mañana</h2>
+                  <p style="color:#555;line-height:1.6">
+                    Se le recuerda que mañana comienza el curso <strong>"{nombre_curso}"</strong>.
+                  </p>
+                  <p style="color:#555;line-height:1.6">
+                    <strong>Fecha:</strong> {fecha_inicio}<br>
+                    <strong>Hora:</strong> {hora_curso or 'No especificada'}
+                  </p>
+                </td></tr>
+                <tr><td style="background:#fdf0f4;padding:14px 32px;text-align:center">
+                  <p style="color:#bbb;font-size:.75rem;margin:0">© 2025 Panadería Gourmet Quetzalteca · Guatemala</p>
+                </td></tr>
+              </table>
+            </body></html>"""
+            msg_admin.attach(MIMEText(html_admin, "html"))
+
         try:
             with smtplib.SMTP(smtp_host, smtp_port) as s:
-                s.ehlo(); s.starttls(); s.login(smtp_user, smtp_pass)
-                s.sendmail(smtp_user, to_email, msg.as_string())
+                s.ehlo()
+                s.starttls()
+                s.login(smtp_user, smtp_pass)
+                # Enviar al alumno
+                try:
+                    s.sendmail(smtp_user, student_email, msg_student.as_string())
+                    print(f"[REMINDER] Correo enviado a alumno: {student_email}")
+                except Exception as est:
+                    print(f"[REMINDER ERROR ALUMNO] {est}")
+                # Enviar al administrador
+                if msg_admin and admin_email:
+                    try:
+                        s.sendmail(smtp_user, admin_email, msg_admin.as_string())
+                        print(f"[REMINDER] Correo enviado a admin: {admin_email}")
+                    except Exception as ead:
+                        print(f"[REMINDER ERROR ADMIN] {ead}")
         except Exception as e:
             print(f"[REMINDER ERROR] {e}")
 
     def _loop():
+        from datetime import time as dt_time
         while True:
             try:
                 with app.app_context():
                     from models.models import Configuracion, Curso, NotificacionCurso
+                    from controllers.config_controller import get_admin_email
                     cfg = Configuracion.query.get("notif_recordatorio24h")
                     if cfg and cfg.valor == "1":
-                        manana = date.today() + timedelta(days=1)
-                        cursos = Curso.query.filter_by(fecha_inicio=manana, is_active=True).all()
+                        cursos = Curso.query.filter(Curso.fecha_inicio >= date.today(), Curso.is_active == True).all()
                         for curso in cursos:
-                            for insc in curso.inscripciones:
-                                ya_enviado = NotificacionCurso.query.filter_by(
-                                    id_curso=curso.id_curso,
-                                    id_inscripcion=insc.id_inscripcion,
-                                    tipo="recordatorio_24h",
-                                ).first()
-                                if not ya_enviado and insc.usuario and insc.is_active:
-                                    _send(
-                                        insc.usuario.email,
-                                        insc.usuario.nombre_completo,
-                                        curso.nombre_curso,
-                                        str(manana),
-                                    )
-                                    db.session.add(NotificacionCurso(
+                            # 1. Parse start time of the course (local time naive)
+                            try:
+                                h_parts = (curso.hora or "00:00").strip().split(":")
+                                hour = int(h_parts[0])
+                                minute = int(h_parts[1])
+                            except Exception:
+                                hour, minute = 0, 0
+                            
+                            start_time = datetime.combine(curso.fecha_inicio, dt_time(hour, minute))
+                            current_time = datetime.now()  # local time
+                            
+                            # 2. Check if the difference is inside the [1439.0, 1441.0] minutes window (24h +/- 1 min)
+                            diff_minutes = (start_time - current_time).total_seconds() / 60.0
+                            if 1439.0 <= diff_minutes <= 1441.0:
+                                # We are in the 24-hour mark window!
+                                for insc in curso.inscripciones:
+                                    ya_enviado = NotificacionCurso.query.filter_by(
                                         id_curso=curso.id_curso,
                                         id_inscripcion=insc.id_inscripcion,
                                         tipo="recordatorio_24h",
-                                    ))
-                                    insc.fecha_recordatorio_enviado = datetime.utcnow()
-                                    db.session.commit()
+                                    ).first()
+                                    if not ya_enviado and insc.usuario and insc.is_active:
+                                        # Only send admin email ONCE per course (on the first sent student notification)
+                                        admin_enviado = NotificacionCurso.query.filter_by(
+                                            id_curso=curso.id_curso,
+                                            tipo="recordatorio_24h"
+                                        ).first()
+                                        
+                                        admin_email_to_send = None
+                                        if not admin_enviado:
+                                            admin_email_to_send = get_admin_email()
+                                            
+                                        _send_reminders(
+                                            insc.usuario.email,
+                                            insc.usuario.nombre_completo,
+                                            curso.nombre_curso,
+                                            str(curso.fecha_inicio),
+                                            curso.hora,
+                                            admin_email_to_send
+                                        )
+                                        db.session.add(NotificacionCurso(
+                                            id_curso=curso.id_curso,
+                                            id_inscripcion=insc.id_inscripcion,
+                                            tipo="recordatorio_24h",
+                                        ))
+                                        insc.fecha_recordatorio_enviado = datetime.utcnow()
+                                        db.session.commit()
             except Exception as e:
                 print(f"[SCHEDULER ERROR] {e}")
-            time.sleep(3600)  # revisar cada hora
+            finally:
+                with app.app_context():
+                    db.session.remove()
+            time.sleep(60)  # revisar cada minuto para reaccionar en tiempo real
 
     t = threading.Thread(target=_loop, daemon=True)
     t.start()

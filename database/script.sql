@@ -190,3 +190,4 @@ INSERT INTO categoria (nombre_categoria) VALUES ('Otros');
 -- UPDATE curso    SET is_active = TRUE WHERE is_active IS NULL;
 -- UPDATE producto SET is_active = TRUE WHERE is_active IS NULL;
 -- UPDATE inscripcion SET is_active = TRUE WHERE is_active IS NULL;
+-- ALTER TABLE usuario ADD COLUMN IF NOT EXISTS telefono VARCHAR(20) NULL;
