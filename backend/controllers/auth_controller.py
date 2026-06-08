@@ -225,6 +225,8 @@ def google_login(data: dict):
         return {"message": "No se pudo obtener el correo de Google."}, 400
 
     usuario = Usuario.query.filter_by(email=email).first()
+    if usuario: # Refresh the user object to get the latest role from DB
+        db.session.refresh(usuario)
     if not usuario:
         rol_cliente = Rol.query.filter_by(nombre_rol="Cliente").first()
         if not rol_cliente:
@@ -337,6 +339,8 @@ def google_userinfo(data: dict):
         return {"message": "No se recibió el correo de Google."}, 400
 
     usuario = Usuario.query.filter_by(email=email).first()
+    if usuario: # Refresh the user object to get the latest role from DB
+        db.session.refresh(usuario)
     if not usuario:
         rol_cliente = Rol.query.filter_by(nombre_rol="Cliente").first()
         if not rol_cliente:
@@ -544,8 +548,69 @@ def accept_docente(token: str):
     db.session.commit()
     del _pending_invitations[token]
 
+    usuario_dict = usuario.to_dict()
+    usuario_dict["auth_token"] = crear_token_usuario(usuario)
+
     return {
         "message"  : f"¡Listo! {usuario.nombre_completo} ahora tiene rol de Docente.",
         "accepted" : True,
+        "id_usuario": usuario.id_usuario,
+        "usuario": usuario_dict,
+        "token": usuario_dict["auth_token"],
+    }, 200
+
+
+def listar_docentes():
+    """
+    Retorna todos los usuarios con rol Administrador o Docente.
+    Usado por el panel de admin para mostrar la lista de docentes autorizados.
+    """
+    rol_admin = Rol.query.filter_by(nombre_rol="Administrador").first()
+    rol_docente = Rol.query.filter_by(nombre_rol="Docente").first()
+
+    ids_roles = []
+    if rol_admin:
+        ids_roles.append(rol_admin.id_rol)
+    if rol_docente:
+        ids_roles.append(rol_docente.id_rol)
+
+    if not ids_roles:
+        return [], 200
+
+    usuarios = Usuario.query.filter(Usuario.id_rol.in_(ids_roles)).all()
+
+    result = []
+    for u in usuarios:
+        result.append({
+            "id_usuario"     : u.id_usuario,
+            "nombre_completo": u.nombre_completo,
+            "email"          : u.email,
+            "rol"            : u.rol.nombre_rol if u.rol else "Desconocido",
+        })
+
+    return result, 200
+
+
+def quitar_docente(id_usuario: int):
+    """
+    Devuelve al usuario con rol Docente al rol Cliente.
+    """
+    usuario = Usuario.query.get(id_usuario)
+    if not usuario:
+        return {"message": "Usuario no encontrado."}, 404
+
+    rol_docente = Rol.query.filter_by(nombre_rol="Docente").first()
+    if not rol_docente or usuario.id_rol != rol_docente.id_rol:
+        return {"message": "Este usuario no tiene rol de Docente."}, 409
+
+    rol_cliente = Rol.query.filter_by(nombre_rol="Cliente").first()
+    if not rol_cliente:
+        return {"message": "Error de configuración: rol 'Cliente' no existe."}, 500
+
+    usuario.id_rol = rol_cliente.id_rol
+    db.session.commit()
+
+    return {
+        "message": f"El rol de {usuario.nombre_completo} fue cambiado a Cliente.",
         "id_usuario": usuario.id_usuario,
     }, 200

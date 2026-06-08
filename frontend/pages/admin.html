@@ -670,18 +670,6 @@ table{min-width:600px;}
               Guardar número ›
             </button>
           </div>
-
-          <div class="settings-card">
-            <h3>Estado del Sistema</h3>
-            <div class="setting-row"><label>Sitio web activo</label><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="setting-row"><label>Registro de usuarios</label><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="setting-row"><label>Modo mantenimiento</label><label class="toggle"><input type="checkbox"><span class="slider"></span></label></div>
-            <div style="margin-top:16px;padding:12px;background:var(--blush-bg);border-radius:8px;font-size:.75rem;color:var(--text-light);line-height:1.6">
-              <strong style="color:var(--dark-pink)">🗄 Base de datos:</strong> No conectada aún<br>
-              <strong style="color:var(--dark-pink)">📡 API:</strong> Modo local (localStorage)<br>
-              <em>Conecta tu base de datos para persistencia real de datos.</em>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1074,7 +1062,7 @@ function initApp(){
 }
 
 // ══ NAVIGATION ══
-function showPanel(name){ if(name==='ajustes') cargarNotificaciones();
+function showPanel(name){ if(name==='ajustes'){ cargarNotificaciones(); cargarListaDocentes(); }
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -1603,18 +1591,22 @@ async function addAdmin(){
     const data = await res.json();
 
     if(res.ok){
+      // Mostrar en la lista como "invitación pendiente" (hasta que acepte aparecerá con rol real)
       const list = document.getElementById('admin-list');
       const initial = (data.nombre || email)[0].toUpperCase();
-      list.insertAdjacentHTML('beforeend', `
-        <div class="admin-row">
-          <div class="user-avatar">${initial}</div>
-          <div class="admin-row-info">
-            <strong>${data.nombre || email}</strong>
-            <span>${email} · Invitación enviada ✉️</span>
+      // Evitar duplicar si ya está en la lista
+      if(!list.querySelector(`[data-email="${email}"]`)){
+        list.insertAdjacentHTML('beforeend', `
+          <div class="admin-row" data-email="${email}">
+            <div class="user-avatar" style="background:#aaa">${initial}</div>
+            <div class="admin-row-info">
+              <strong>${data.nombre || email}</strong>
+              <span>${email} · Invitación enviada ✉️</span>
+            </div>
+            <button class="btn-remove-admin" onclick="this.closest('.admin-row').remove()">✕</button>
           </div>
-          <button class="btn-remove-admin" onclick="this.closest('.admin-row').remove()">✕</button>
-        </div>
-      `);
+        `);
+      }
       document.getElementById('new-admin-email').value = '';
       feedback.innerHTML = '';
       _adminEmailValid = false;
@@ -1677,6 +1669,56 @@ async function cargarNotificaciones(){
     const input = document.getElementById('setting-notif-email');
     if(input && data['negocio_email']) input.value = data['negocio_email'];
   } catch { /* sin conexión, dejar defaults */ }
+}
+
+async function cargarListaDocentes(){
+  const list = document.getElementById('admin-list');
+  if(!list) return;
+  try {
+    const res = await fetch('/api/auth/docentes', { headers: getAdminAuthHeaders() });
+    if(!res.ok) return;
+    const usuarios = await res.json();
+    list.innerHTML = '';
+    usuarios.forEach(u => {
+      const inicial = (u.nombre_completo || u.email)[0].toUpperCase();
+      const esDocente = u.rol === 'Docente';
+      const botonQuitar = esDocente
+        ? `<button class="btn-remove-admin" title="Quitar rol de docente"
+             onclick="quitarDocente(${u.id_usuario}, this)">✕</button>`
+        : '';
+      list.insertAdjacentHTML('beforeend', `
+        <div class="admin-row" data-id="${u.id_usuario}">
+          <div class="user-avatar">${inicial}</div>
+          <div class="admin-row-info">
+            <strong>${u.nombre_completo}</strong>
+            <span>${u.email} · ${u.rol === 'Administrador' ? 'Super Admin' : 'Docente'}</span>
+          </div>
+          ${botonQuitar}
+        </div>
+      `);
+    });
+  } catch(e) {
+    console.warn('No se pudo cargar la lista de docentes:', e);
+  }
+}
+
+async function quitarDocente(id_usuario, btn){
+  if(!confirm('¿Quitar el rol de Docente a este usuario? Volverá a ser Cliente.')) return;
+  try {
+    const res = await fetch(`/api/auth/quitar-docente/${id_usuario}`, {
+      method : 'POST',
+      headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
+    });
+    const data = await res.json();
+    if(res.ok){
+      btn.closest('.admin-row').remove();
+      showToast(data.message || 'Rol quitado correctamente', 'success');
+    } else {
+      showToast(data.message || 'Error al quitar el rol', 'error');
+    }
+  } catch {
+    showToast('Error de conexión', 'error');
+  }
 }
 
 async function guardarCuentaAdmin(){

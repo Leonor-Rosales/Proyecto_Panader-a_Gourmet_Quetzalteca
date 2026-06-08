@@ -829,7 +829,7 @@ async function handleLogin(){
       showMsg('login-message','¡Bienvenido! Redirigiendo…','success');
       actualizarNavAuth();
       setTimeout(()=>{
-        if(data.usuario.id_rol===2){window.location.href='/admin';}
+        if(data.usuario.id_rol===2||data.usuario.id_rol===3){window.location.href='/admin';}
         else{closeModal();clearMsg('login-message');}
       },1200);
     } else showMsg('login-message',data.message||'Correo o contraseña incorrectos.','error');
@@ -921,7 +921,7 @@ function handleGoogleLogin(){
           showMsg('login-message','¡Bienvenido con Google! Redirigiendo…','success');
           actualizarNavAuth();
           setTimeout(()=>{
-            if(data.usuario.id_rol===2){ window.location.href='/admin'; }
+            if(data.usuario.id_rol===2||data.usuario.id_rol===3){ window.location.href='/admin'; }
             else{ closeModal(); clearMsg('login-message'); }
           },1200);
         } else {
@@ -948,7 +948,7 @@ async function _onGoogleCredential(response){
       showMsg('login-message','¡Bienvenido con Google! Redirigiendo…','success');
       actualizarNavAuth();
       setTimeout(()=>{
-        if(data.usuario.id_rol===2){ window.location.href='/admin'; }
+        if(data.usuario.id_rol===2||data.usuario.id_rol===3){ window.location.href='/admin'; }
         else{ closeModal(); clearMsg('login-message'); }
       },1200);
     } else {

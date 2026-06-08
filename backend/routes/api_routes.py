@@ -9,7 +9,9 @@ from controllers.auth_controller import (
     google_login,
     google_userinfo,
     invitar_docente,
+    listar_docentes,
     login_usuario,
+    quitar_docente,
     registrar_usuario,
     verificar_correo_usuario,
 )
@@ -112,6 +114,18 @@ def check_email():
 @admin_required
 def post_invitar_docente():
     return resp(*invitar_docente(request.get_json(force=True) or {}))
+
+
+@api.get("/auth/docentes")
+@admin_required
+def get_docentes():
+    return resp(*listar_docentes())
+
+
+@api.post("/auth/quitar-docente/<int:id_usuario>")
+@admin_required
+def post_quitar_docente(id_usuario):
+    return resp(*quitar_docente(id_usuario))
 
 
 @api.get("/auth/accept-docente/<string:token>")
